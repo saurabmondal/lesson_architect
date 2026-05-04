@@ -1,0 +1,269 @@
+{
+  "lesson_plans": [
+    {
+      "lesson_no": 16,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Parallel and Intersecting Lines",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define parallel lines",
+        "Explain intersecting lines",
+        "Identify parallel and intersecting lines from diagrams",
+        "Differentiate between parallel and intersecting lines"
+      ],
+      "entry_behaviour": [
+        {
+          "question": "What is a line?",
+          "answer": "A line is a straight path that extends infinitely in both directions."
+        },
+        {
+          "question": "What is a line segment?",
+          "answer": "A line segment is a part of a line having two endpoints."
+        },
+        {
+          "question": "What are intersecting lines?",
+          "answer": "Lines that meet at a point are called intersecting lines."
+        }
+      ],
+      "teaching_aid": [
+        "Flannel board",
+        "Models showing different types of lines"
+      ],
+      "announcement": "Today we are going to study parallel and intersecting lines.",
+      "instructional_procedure": {
+        "parallel_lines": {
+          "definition": "Lines that never meet even when extended.",
+          "properties": [
+            "Remain at equal distance",
+            "Do not intersect"
+          ]
+        },
+        "intersecting_lines": {
+          "definition": "Lines that meet at one point.",
+          "properties": [
+            "Have a common point",
+            "Form angles"
+          ]
+        }
+      },
+      "activities": [
+        "Identify parallel lines in surroundings",
+        "Draw intersecting lines"
+      ],
+      "evaluation": [
+        "Define intersecting lines",
+        "Identify types of lines",
+        "Give examples"
+      ],
+      "summary": [
+        "Parallel lines never meet",
+        "Intersecting lines meet at a point"
+      ]
+    },
+    {
+      "lesson_no": 17,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Angles formed by Intersecting Lines",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define angles formed by intersecting lines",
+        "Explain vertically opposite angles",
+        "Explain adjacent angles"
+      ],
+      "entry_behaviour": [
+        {
+          "question": "What is an angle?",
+          "answer": "Formed when two lines meet"
+        }
+      ],
+      "teaching_aid": [
+        "Flashcards",
+        "Board diagrams"
+      ],
+      "announcement": "Study angles formed by intersecting lines.",
+      "instructional_procedure": {
+        "adjacent_angles": {
+          "definition": "Angles sharing a common side"
+        },
+        "vertically_opposite_angles": {
+          "definition": "Opposite angles formed by intersecting lines",
+          "property": "Always equal"
+        }
+      },
+      "activities": [
+        "Draw intersecting lines",
+        "Label angle pairs"
+      ],
+      "evaluation": [
+        "Define vertically opposite angles",
+        "Identify angle pairs"
+      ],
+      "summary": [
+        "Opposite angles are equal",
+        "Adjacent angles share a side"
+      ]
+    },
+    {
+      "lesson_no": 18,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Perpendicular Lines",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define perpendicular lines",
+        "Identify right angles"
+      ],
+      "entry_behaviour": [
+        {
+          "question": "What is a right angle?",
+          "answer": "90 degrees"
+        }
+      ],
+      "teaching_aid": [
+        "Flashcards"
+      ],
+      "announcement": "Study perpendicular lines.",
+      "instructional_procedure": {
+        "perpendicular_lines": {
+          "definition": "Lines that meet at 90°",
+          "examples": [
+            "Book edges",
+            "Walls and floor"
+          ]
+        }
+      },
+      "activities": [
+        "Draw perpendicular lines"
+      ],
+      "evaluation": [
+        "Define perpendicular lines",
+        "Give examples"
+      ],
+      "summary": [
+        "Perpendicular lines form right angle"
+      ]
+    },
+    {
+      "lesson_no": 19,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Transversal and Corresponding Angles",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define transversal",
+        "Explain corresponding angles"
+      ],
+      "teaching_aid": [
+        "Diagrams"
+      ],
+      "instructional_procedure": {
+        "transversal": {
+          "definition": "A line cutting two lines"
+        },
+        "corresponding_angles": {
+          "definition": "Angles in same position",
+          "property": "Equal for parallel lines"
+        }
+      },
+      "activities": [
+        "Draw transversal",
+        "Identify angles"
+      ],
+      "evaluation": [
+        "Define transversal",
+        "Identify corresponding angles"
+      ],
+      "summary": [
+        "Corresponding angles are equal"
+      ]
+    },
+    {
+      "lesson_no": 20,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Alternate Angles",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define alternate angles",
+        "Solve problems"
+      ],
+      "instructional_procedure": {
+        "alternate_angles": {
+          "definition": "Angles on opposite sides of transversal",
+          "property": "Equal"
+        }
+      },
+      "activities": [
+        "Solve angle problems"
+      ],
+      "evaluation": [
+        "Find missing angles"
+      ],
+      "summary": [
+        "Alternate angles are equal"
+      ]
+    },
+    {
+      "lesson_no": 21,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Equilateral Triangle",
+      "duration": "40 minutes",
+      "objectives": [
+        "Define equilateral triangle",
+        "Construct triangle"
+      ],
+      "instructional_procedure": {
+        "equilateral_triangle": {
+          "definition": "All sides equal",
+          "properties": [
+            "All angles are 60°"
+          ]
+        }
+      },
+      "activities": [
+        "Construct triangle"
+      ],
+      "evaluation": [
+        "Define equilateral triangle"
+      ],
+      "summary": [
+        "All sides and angles equal"
+      ]
+    },
+    {
+      "lesson_no": 22,
+      "class": 6,
+      "subject": "Mathematics",
+      "topic": "Construction of Triangle",
+      "duration": "40 minutes",
+      "objectives": [
+        "Construct triangles",
+        "Apply triangle inequality"
+      ],
+      "instructional_procedure": {
+        "triangle_construction": {
+          "cases": [
+            "SSS",
+            "SAS",
+            "ASA"
+          ]
+        },
+        "triangle_inequality": {
+          "rule": "Sum of two sides > third side"
+        }
+      },
+      "activities": [
+        "Construct triangles"
+      ],
+      "evaluation": [
+        "Check validity of triangle"
+      ],
+      "summary": [
+        "Triangle must satisfy inequality"
+      ]
+    }
+  ]
+}

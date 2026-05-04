@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "LessonPlan": {
+      "title": "Lesson Plan",
+      "description": "A generated lesson plan.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "preliminaryInformation": { "type": "object" },
+        "instructionalObjectives": { "type": "array" },
+        "entryBehaviour": { "type": "array" },
+        "instructionalAids": { "type": "string" },
+        "instructionalProcedure": { "type": "array" },
+        "summary": { "type": "string" },
+        "activities": { "type": "array" },
+        "finalEvaluation": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "createdAt", "preliminaryInformation"]
+    }
+  },
+  "firestore": {
+    "lessonPlans/{lessonPlanId}": {
+      "schema": { "$ref": "LessonPlan" },
+      "description": "Generated lesson plans"
+    }
+  }
+}

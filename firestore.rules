@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidLessonPlan(data) {
+      return data.keys().hasAll(['userId', 'createdAt', 'preliminaryInformation'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
+    match /lessonPlans/{lessonPlanId} {
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      allow get: if isAuthenticated() && isValidId(lessonPlanId) && resource.data.userId == request.auth.uid;
+
+      allow create: if isAuthenticated() 
+        && isValidId(lessonPlanId)
+        && isValidLessonPlan(incoming())
+        && incoming().createdAt == request.time
+        && incoming().keys().hasOnly(['userId', 'createdAt', 'preliminaryInformation', 'instructionalObjectives', 'entryBehaviour', 'instructionalAids', 'instructionalProcedure', 'summary', 'activities', 'finalEvaluation']);
+
+      allow update: if isAuthenticated()
+        && isValidId(lessonPlanId)
+        && isValidLessonPlan(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['preliminaryInformation', 'instructionalObjectives', 'entryBehaviour', 'instructionalAids', 'instructionalProcedure', 'summary', 'activities', 'finalEvaluation']);
+
+      allow delete: if isAuthenticated() && isValidId(lessonPlanId) && existing().userId == request.auth.uid;
+    }
+  }
+}

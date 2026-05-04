@@ -1,0 +1,212 @@
+[
+    {
+        "Lesson_Plan_Number": 16,
+        "Preliminary_Information": {
+            "Teacher_Trainee": "S. Akansha",
+            "School": "GSS South Point",
+            "Class": "VII",
+            "Subject": "ICT",
+            "Lesson_Name": "Cyber Safety & Security",
+            "Topic_Name": "Cyber Crime",
+            "Duration": "40 mins"
+        },
+        "Instructional_Objectives": [
+            "Define cyber crime",
+            "Explain the need of cyber security",
+            "List out the major security problems",
+            "Differentiate between cyber crime, cyber attack and cyber terrorism"
+        ],
+        "Entry_Behaviour": [
+            "Why do we use computers?",
+            "Have you heard about Net-Banking?",
+            "Do you have social media accounts?",
+            "Have you ever heard that any content of your friends' account is hacked?",
+            "Is it a crime?"
+        ],
+        "Instructional_Aids": "Illustrative Board representing major security problems",
+        "Content_Sections": [
+            {
+                "Content": "Cyber Crime",
+                "Learning_Experience": "Any offence committed against reputation or cause physical or mental trauma through electronic means can be defined as cyber crime. Electronic means include internet, chat rooms, emails, mobile phones, Bluetooth, SMS.",
+                "Behavioral_Objectives": "Define cyber crime",
+                "Evaluation": "What is cyber crime? Does cyber crime include electronic means?"
+            },
+            {
+                "Content": "Need of Cyber Security",
+                "Learning_Experience": "Cyber security is important because it protects all categories of data from theft and damage. It helps keep private data like passwords and photos safe from hackers and prevents loss of money due to online scams.",
+                "Behavioral_Objectives": "Explain the need of cyber security",
+                "Evaluation": "Explain the need of cyber security."
+            },
+            {
+                "Content": "Major Security Problems",
+                "Learning_Experience": "1. Variety of Devices: Different devices connect to the internet, not all have strong security. 2. Lack of common standards: Difficult to set same security rules for every country. 3. Poor Data Protection: Weak passwords make it easier for attackers. 4. Low Digital Awareness: Users don't know about safe practices.",
+                "Behavioral_Objectives": "List out the major security problems",
+                "Evaluation": "How lack of common standards and poor data protection lead to security problems?"
+            },
+            {
+                "Content": "Cyber Crime vs Attack vs Terrorism",
+                "Learning_Experience": "Cyber Crime: Criminal activity involving a computer. Cyber Attack: Stealing and destroying data. Cyber Terrorism: Using technologies to cause violence/panic.",
+                "Behavioral_Objectives": "Differentiate between cyber crime, cyber attack and cyber terrorism",
+                "Evaluation": "What is the difference between cyber crime and cyber attack?"
+            }
+        ]
+    },
+    {
+        "Lesson_Plan_Number": 17,
+        "Preliminary_Information": {
+            "Teacher_Trainee": "S. Akansha",
+            "School": "GSS South Point",
+            "Class": "VII",
+            "Subject": "ICT",
+            "Lesson_Name": "Cyber Safety & Security",
+            "Topic_Name": "Types of Cyber Crime",
+            "Duration": "40 mins"
+        },
+        "Instructional_Objectives": [
+            "Define cyber criminals",
+            "Enlist the types of cyber crime",
+            "Explain the types of cyber crime",
+            "Give example of types of cyber crime"
+        ],
+        "Content_Sections": [
+            {
+                "Content": "Cyber Criminals",
+                "Learning_Experience": "Adept and advanced hackers who attack the computer are termed as cyber criminals.",
+                "Behavioral_Objectives": "Define cyber criminals",
+                "Evaluation": "What do you mean by cyber criminals?"
+            },
+            {
+                "Content": "Malware",
+                "Learning_Experience": "Malware is a form of application that performs malicious activities. Example: Ransomware (2017) designed to encrypt files and ask for ransom.",
+                "Behavioral_Objectives": "Explain Malware",
+                "Evaluation": "Give one example of malware."
+            },
+            {
+                "Content": "Phishing",
+                "Learning_Experience": "Hackers trick a target into handing over valuable info like passwords or credit card details. Example: Message regarding OTP with a clickable link.",
+                "Behavioral_Objectives": "Define Phishing",
+                "Evaluation": "Give one example of phishing."
+            },
+            {
+                "Content": "MITM (Man In The Middle)",
+                "Learning_Experience": "Interception of message between two parties to spy or steal data. Example: Fake looking public WIFI hotspot.",
+                "Behavioral_Objectives": "Define MITM",
+                "Evaluation": "Give one example of MITM."
+            },
+            {
+                "Content": "DDoS (Distributed Denial of Service)",
+                "Learning_Experience": "Hacker floods a target server with traffic to disrupt it. Example: GitHub DDoS (2018).",
+                "Behavioral_Objectives": "Explain DDoS",
+                "Evaluation": "What is the full form of DDoS?"
+            }
+        ]
+    },
+    {
+        "Lesson_Plan_Number": 18,
+        "Preliminary_Information": {
+            "Teacher_Trainee": "S. Akansha",
+            "School": "GSS South Point",
+            "Class": "VII",
+            "Subject": "ICT",
+            "Lesson_Name": "Cyber Safety & Security",
+            "Topic_Name": "Types of Cyber Crime (Continued)",
+            "Duration": "40 mins"
+        },
+        "Content_Sections": [
+            {
+                "Content": "Cryptojacking",
+                "Learning_Experience": "Targeting a computer to mine cryptocurrencies like Bitcoin.",
+                "Behavioral_Objectives": "Explain Cryptojacking",
+                "Evaluation": "What is cryptojacking?"
+            },
+            {
+                "Content": "Identity Theft",
+                "Learning_Experience": "Theft of personal information of an individual to avail financial services.",
+                "Behavioral_Objectives": "Explain Identity Theft",
+                "Evaluation": "What is meant by identity theft?"
+            },
+            {
+                "Content": "Hacking",
+                "Learning_Experience": "Gaining unauthorized access to a computer system or network by exploiting vulnerabilities.",
+                "Behavioral_Objectives": "Explain Hacking",
+                "Evaluation": "What is hacking?"
+            },
+            {
+                "Content": "Cyber Warfare",
+                "Learning_Experience": "Cyber crime crossing national borders involving actions of at least one nation state.",
+                "Behavioral_Objectives": "Define cyber warfare",
+                "Evaluation": "What is cyber warfare?"
+            }
+        ]
+    },
+    {
+        "Lesson_Plan_Number": 19,
+        "Preliminary_Information": {
+            "Teacher_Trainee": "S. Akansha",
+            "School": "GSS South Point",
+            "Class": "VII",
+            "Subject": "ICT",
+            "Lesson_Name": "Cyber Safety & Security",
+            "Topic_Name": "Computer Virus",
+            "Duration": "40 mins"
+        },
+        "Instructional_Objectives": [
+            "Define computer virus",
+            "Give examples of computer viruses",
+            "Enlist common signs of computer virus",
+            "Explain signs of computer virus"
+        ],
+        "Content_Sections": [
+            {
+                "Content": "Computer Virus",
+                "Learning_Experience": "A malicious computer program which when executed replicates itself and inserts its own code. First virus 'Creeper' (1971) by Bob Thomas.",
+                "Behavioral_Objectives": "Define computer virus",
+                "Evaluation": "What is computer virus? Name two viruses."
+            },
+            {
+                "Content": "Common Signs",
+                "Learning_Experience": "System running slower, pop-up windows, crashing of device, mass emails sent from account, changes to homepage.",
+                "Behavioral_Objectives": "Explain signs of computer virus",
+                "Evaluation": "Enlist common signs. How can a device be crashed?"
+            }
+        ]
+    },
+    {
+        "Lesson_Plan_Number": 20,
+        "Preliminary_Information": {
+            "Teacher_Trainee": "S. Akansha",
+            "School": "GSS South Point",
+            "Class": "VII",
+            "Subject": "ICT",
+            "Lesson_Name": "Cyber Safety & Security",
+            "Topic_Name": "Worms",
+            "Duration": "40 mins"
+        },
+        "Instructional_Objectives": [
+            "Define computer worm",
+            "Explain types of computer worms",
+            "Differentiate between computer virus and worm",
+            "Recommend preventive measures"
+        ],
+        "Content_Sections": [
+            {
+                "Content": "Computer Worm",
+                "Learning_Experience": "Self-replicating malicious software that spreads automatically through networks without needing to attach to a file.",
+                "Behavioral_Objectives": "Define computer worm",
+                "Evaluation": "What is a computer worm?"
+            },
+            {
+                "Content": "Types of Worms",
+                "Learning_Experience": "Email worms (I Love You), File-sharing worms (Klez), Internet worms (Nimda), Instant Messaging worms.",
+                "Behavioral_Objectives": "Explain different types",
+                "Evaluation": "How does an email worm spread?"
+            },
+            {
+                "Content": "Difference (Virus vs Worm)",
+                "Learning_Experience": "Virus needs human action and a host file. Worm is self-replicating and spreads automatically.",
+                "Behavioral_Objectives": "Differentiate between them",
+                "Evaluation": "Why does a virus need a host whereas a worm does not?"
+            }
+        ]
+    }
+]
