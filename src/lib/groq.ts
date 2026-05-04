@@ -6,9 +6,9 @@ let groqClient: Groq | null = null;
 
 export function getGroqClient(): Groq {
   if (!groqClient) {
-    const key = process.env.GROQ_API_KEY;
+    const key = process.env.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY || import.meta.env.GROQ_API_KEY;
     if (!key) {
-      throw new Error('GROQ_API_KEY environment variable is required. Please set it in the settings/secrets panel.');
+      throw new Error('VITE_GROQ_API_KEY environment variable is required. Please set it in Vercel or your settings.');
     }
     groqClient = new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
   }
@@ -36,9 +36,16 @@ export async function generateLessonPlanWithGroq({
     prompt += `Align the tone, structure and focus of the generated structured data tightly with this template requirement provided by the user: \n${templateJson}\n\n`;
   }
 
-  prompt += `\nEnsure the Instructional Procedure clearly details the specific concepts (Content), how they will be taught in class (Learning Experiences - Teacher and Student activities), what behavioral changes to expect (Behavioural Objectives), and questions to check understanding (Evaluation). Provide a detailed, rigorous plan suitable for a full 40-45 minute class. IMPORTANT: In 'learningExperiences', do NOT start the sentences with phrases like "The teacher will", "The teacher", "Students will" or "The students". Just describe the activities directly and naturally. 
+  prompt += `\nEnsure the Instructional Procedure clearly details the specific concepts (Content), how they will be taught in class, what behavioral changes to expect (Behavioural Objectives), and questions to check understanding (Evaluation). Provide a detailed, rigorous plan suitable for a full 40-45 minute class.
 CRITICAL REQUIREMENT: There MUST be a strict 1-to-1 mapping between the items in the 'instructionalObjectives' array and the objects in the 'instructionalProcedure' array. Do NOT skip any objectives. Every single objective must have its own dedicated step in the instructional procedure.
-For each step in the instructional procedure, look at its 'behaviouralObjectives'. The 'content' field for that step MUST directly state the topic mentioned in the objective (e.g. if the objective is 'Define basic structure of html', the content MUST be 'Basic structure of HTML'). The 'learningExperiences' for that step MUST explicitly lay out the definition, the meaning, and an example of that specific concept.
+For each step in the instructional procedure, look at its 'behaviouralObjectives'. The 'content' field for that step MUST directly state the topic mentioned in the objective (e.g. if the objective is 'Define basic structure of html', the content MUST be 'Basic structure of HTML'). 
+
+MOST IMPORTANT RULE FOR 'learningExperiences':
+Do NOT start sentences with action words/pedagogical verbs like "Discuss", "Define", "Explain", "Show", "The teacher will", or "Students will".
+Instead, the 'learningExperiences' MUST ONLY be the pure subject matter content. It MUST explicitly state the Definition, the Meaning, and the Example(s) of the specific concept. Write it directly as factual notes.
+For example, DO write: "Definition: An angle is formed by two rays. Meaning: It measures the amount of turn. Example: 90 degree right angle."
+DO NOT write: "Define what an angle is. Discuss with the class..."
+
 The overall instructional objectives MUST contain all the topics being taught.
 For 'entryBehaviour', provide a minimum of 4 questions to test previous knowledge.
 Your response MUST be valid JSON fitting exactly this structure:
@@ -56,7 +63,7 @@ Your response MUST be valid JSON fitting exactly this structure:
   "instructionalProcedure": [
     {
       "content": "string",
-      "learningExperiences": "string (Must include the definition, meaning, and example of the concept from the behavioural objective)",
+      "learningExperiences": "string (MUST provide factual text only: Definition, Meaning, and Example. Do NOT use instructional verbs like 'Discuss' or 'Explain'.)",
       "behaviouralObjectives": "string",
       "evaluation": "string"
     }
