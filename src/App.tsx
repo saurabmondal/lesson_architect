@@ -8,7 +8,7 @@ import { useReactToPrint } from 'react-to-print';
 import { type LessonPlan, type QuestionPaper } from './lib/gemini';
 import { generateLessonPlanWithGroq, generateActivitiesWithGroq, generateQuestionPaperWithGroq } from './lib/groq';
 import { useAuth } from './components/AuthProvider';
-import { fetchUserLessonPlans, saveLessonPlan, SavedLessonPlan } from './lib/firestore';
+import { fetchUserLessonPlans, saveLessonPlan, SavedLessonPlan, fetchUserActivities, saveActivityLog, SavedActivityLog, fetchUserQuestionPapers, saveQuestionPaper, SavedQuestionPaperLog } from './lib/firestore';
 import mathTemplate from './data/math_template.json';
 import csTemplate from './data/cs_template.json';
 import { topicsData } from './data/topics';
@@ -25,12 +25,15 @@ export default function App() {
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [error, setError] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedLessonPlan[]>([]);
+  const [savedActivities, setSavedActivities] = useState<SavedActivityLog[]>([]);
+  const [savedQuestionPapers, setSavedQuestionPapers] = useState<SavedQuestionPaperLog[]>([]);
   
   // Mobile Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Page Routing State
   const [activePage, setActivePage] = useState<'generator' | 'history' | 'activities' | 'test'>('generator');
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'lesson_plans' | 'activities' | 'test_papers'>('lesson_plans');
 
   // Standalone Activities State
   const [activityClassLevel, setActivityClassLevel] = useState<string>('');
@@ -50,14 +53,40 @@ export default function App() {
   const [isGeneratingTest, setIsGeneratingTest] = useState(false);
   const [testError, setTestError] = useState('');
   const [questionPaper, setQuestionPaper] = useState<QuestionPaper | null>(null);
+  const [testViewMode, setTestViewMode] = useState<'paper' | 'answer_key'>('paper');
+
+  const historyPaperRef = useRef<HTMLDivElement>(null);
+  const handlePrintTestHistory = useReactToPrint({
+    contentRef: historyPaperRef,
+    documentTitle: `Question_Paper_${testSubject}_Class_${testClassLevel}`
+  });
+
+  const generateTestHistoryPDF = async () => {
+    if (!historyPaperRef.current) return;
+    try {
+      setIsDownloadingPdf(true);
+      const dataUrl = await toPng(historyPaperRef.current, { quality: 0.95 });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (historyPaperRef.current.offsetHeight * pdfWidth) / historyPaperRef.current.offsetWidth;
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Question_Paper.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF", err);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
-      fetchUserLessonPlans(user.uid).then(plans => {
-        setSavedPlans(plans);
-      });
+      fetchUserLessonPlans(user.uid).then(plans => setSavedPlans(plans));
+      fetchUserActivities(user.uid).then(acts => setSavedActivities(acts));
+      fetchUserQuestionPapers(user.uid).then(papers => setSavedQuestionPapers(papers));
     } else {
       setSavedPlans([]);
+      setSavedActivities([]);
+      setSavedQuestionPapers([]);
     }
   }, [user]);
 
@@ -144,6 +173,17 @@ export default function App() {
         totalMarks: testTotalMarks
       });
       setQuestionPaper(paper);
+      setTestViewMode('paper');
+      if (user) {
+        const savedLog = await saveQuestionPaper(user.uid, {
+          classLevel: testClassLevel,
+          subject: testSubject,
+          paper
+        });
+        if (savedLog) {
+          setSavedQuestionPapers(prev => [savedLog, ...prev]);
+        }
+      }
     } catch (err: any) {
       setTestError(err.message || "An error occurred while generating test.");
     } finally {
@@ -167,6 +207,18 @@ export default function App() {
         topic: activityTopic
       });
       setStandaloneActivities(activities);
+      if (user) {
+        const savedLog = await saveActivityLog(user.uid, {
+          classLevel: activityClassLevel,
+          subject: activitySubject,
+          lesson: activityLesson,
+          topic: activityTopic,
+          activities
+        });
+        if (savedLog) {
+          setSavedActivities(prev => [savedLog, ...prev]);
+        }
+      }
     } catch (err: any) {
       setActivityError(err.message || "An error occurred while generating activities.");
     } finally {
@@ -393,41 +445,141 @@ export default function App() {
         
         {/* === HISTORY VIEW === */}
         {activePage === 'history' && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
             <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
               <BookOpen className="w-6 h-6 text-fuchsia-600" />
-              Lesson Plan History
+              History
             </h2>
-            {savedPlans.length > 0 ? (
-              <div className="grid gap-4">
-                {savedPlans.map((plan, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setLessonPlan(plan);
-                      setActivePage('generator');
-                    }}
-                    className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-violet-100 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
-                  >
-                    <p className="font-bold text-slate-800 text-lg group-hover:text-violet-700 transition-colors mb-2">{plan.preliminaryInformation.lessonName}</p>
-                    <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
-                      <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.subject}</span>
-                      <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.topicName}</span>
-                      <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {plan.preliminaryInformation.classLevel}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-violet-100 shadow-sm">
-                <BookOpen className="w-12 h-12 text-violet-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-bold mb-2">No Plans Yet</p>
-                {user ? (
-                  <p className="text-sm text-slate-500">Your generated lesson plans will appear here.</p>
-                ) : (
-                  <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
-                )}
-              </div>
+            
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-violet-100 pb-2">
+              <button 
+                onClick={() => setActiveHistoryTab('lesson_plans')}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'lesson_plans' ? 'bg-violet-100 text-violet-900' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                Lesson Plans
+              </button>
+              <button 
+                onClick={() => setActiveHistoryTab('activities')}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'activities' ? 'bg-fuchsia-100 text-fuchsia-900' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                Activities
+              </button>
+              <button 
+                onClick={() => setActiveHistoryTab('test_papers')}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'test_papers' ? 'bg-cyan-100 text-cyan-900' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                Question Papers
+              </button>
+            </div>
+
+            {activeHistoryTab === 'lesson_plans' && (
+              savedPlans.length > 0 ? (
+                <div className="grid gap-4">
+                  {savedPlans.map((plan, i) => (
+                    <button
+                      key={plan.id || i}
+                      onClick={() => {
+                        setLessonPlan(plan);
+                        setActivePage('generator');
+                      }}
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-violet-100 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                    >
+                      <p className="font-bold text-slate-800 text-lg group-hover:text-violet-700 transition-colors mb-2">{plan.preliminaryInformation.lessonName}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.subject}</span>
+                        <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.topicName}</span>
+                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {plan.preliminaryInformation.classLevel}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-violet-100 shadow-sm">
+                  <BookOpen className="w-12 h-12 text-violet-300 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold mb-2">No Plans Yet</p>
+                  {user ? (
+                    <p className="text-sm text-slate-500">Your generated lesson plans will appear here.</p>
+                  ) : (
+                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                  )}
+                </div>
+              )
+            )}
+
+            {activeHistoryTab === 'activities' && (
+              savedActivities.length > 0 ? (
+                <div className="grid gap-4">
+                  {savedActivities.map((act, i) => (
+                    <button
+                      key={act.id || i}
+                      onClick={() => {
+                        setActivityClassLevel(act.classLevel);
+                        setActivitySubject(act.subject);
+                        if (act.lesson) setActivityLesson(act.lesson);
+                        if (act.topic) setActivityTopic(act.topic);
+                        setStandaloneActivities(act.activities);
+                        setActivePage('activities');
+                      }}
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-fuchsia-100 hover:border-fuchsia-300 hover:shadow-lg hover:shadow-fuchsia-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                    >
+                      <p className="font-bold text-slate-800 text-lg group-hover:text-fuchsia-700 transition-colors mb-2">{act.topic || act.lesson || "Standalone Activities"}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{act.subject}</span>
+                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {act.classLevel}</span>
+                        <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">{act.activities.length} activities</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-fuchsia-100 shadow-sm">
+                  <Rocket className="w-12 h-12 text-fuchsia-300 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold mb-2">No Activities Yet</p>
+                  {user ? (
+                    <p className="text-sm text-slate-500">Your generated activities will appear here.</p>
+                  ) : (
+                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                  )}
+                </div>
+              )
+            )}
+
+            {activeHistoryTab === 'test_papers' && (
+              savedQuestionPapers.length > 0 ? (
+                <div className="grid gap-4">
+                  {savedQuestionPapers.map((paperLog, i) => (
+                    <button
+                      key={paperLog.id || i}
+                      onClick={() => {
+                        setTestClassLevel(paperLog.classLevel);
+                        setTestSubject(paperLog.subject);
+                        setQuestionPaper(paperLog.paper);
+                        setActivePage('test');
+                        setTestViewMode('paper');
+                      }}
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-cyan-100 hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    >
+                      <p className="font-bold text-slate-800 text-lg group-hover:text-cyan-700 transition-colors mb-2">{paperLog.paper.title}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{paperLog.subject}</span>
+                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {paperLog.classLevel}</span>
+                        <span className="bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-md">{paperLog.paper.totalMarks} Marks</span>
+                        <span className="bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md">{paperLog.paper.duration}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-cyan-100 shadow-sm">
+                  <FileText className="w-12 h-12 text-cyan-300 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold mb-2">No Question Papers Yet</p>
+                  {user ? (
+                    <p className="text-sm text-slate-500">Your generated question papers will appear here.</p>
+                  ) : (
+                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                  )}
+                </div>
+              )
             )}
           </div>
         )}
@@ -666,74 +818,113 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden"
               >
-                <div className="p-6 md:p-10 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-extrabold text-2xl text-slate-900 mb-1">{questionPaper.title}</h3>
-                    <p className="text-slate-500 font-medium text-sm flex gap-3">
-                      <span>Subject: <strong className="text-slate-700">{testSubject}</strong></span> &bull; 
-                      <span>Class <strong className="text-slate-700">{testClassLevel}</strong></span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex flex-col text-center">
-                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Time</span>
-                      <span className="text-indigo-600">{questionPaper.duration}</span>
-                    </div>
-                    <div className="w-px h-8 bg-slate-200"></div>
-                    <div className="flex flex-col text-center">
-                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Marks</span>
-                      <span className="text-indigo-600">{questionPaper.totalMarks}</span>
-                    </div>
-                  </div>
+                <div className="flex border-b border-slate-200 bg-slate-50">
+                  <button
+                    onClick={() => setTestViewMode('paper')}
+                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'paper' ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
+                  >
+                    Question Paper
+                  </button>
+                  <button
+                    onClick={() => setTestViewMode('answer_key')}
+                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'answer_key' ? 'text-emerald-600 bg-white border-b-2 border-emerald-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
+                  >
+                    Answer Key
+                  </button>
                 </div>
-
-                <div className="p-6 md:p-10 space-y-10">
-                  {questionPaper.sections.map((sec, i) => (
-                    <div key={i}>
-                      <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-2">
-                        <h4 className="font-extrabold text-lg text-slate-800">{sec.sectionName}</h4>
-                        <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
-                          {sec.marksPerQuestion} mark{sec.marksPerQuestion > 1 ? 's' : ''} each
-                        </span>
+                
+                <div ref={historyPaperRef} className="print-test-container bg-white">
+                  <div className="p-6 md:p-10 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
+                    <div>
+                      <h3 className="font-extrabold text-2xl text-slate-900 mb-1">{questionPaper.title} {testViewMode === 'answer_key' && <span className="text-emerald-600 ml-2">(Answer Key)</span>}</h3>
+                      <p className="text-slate-500 font-medium text-sm flex gap-3">
+                        <span>Subject: <strong className="text-slate-700">{testSubject}</strong></span> &bull; 
+                        <span>Class <strong className="text-slate-700">{testClassLevel}</strong></span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm font-bold bg-slate-50 px-4 py-2 rounded-xl shadow-sm border border-slate-200 print:hidden">
+                      <div className="flex flex-col text-center">
+                        <span className="text-slate-400 text-[10px] uppercase tracking-widest">Time</span>
+                        <span className="text-indigo-600">{questionPaper.duration}</span>
                       </div>
-                      <div className="space-y-8">
-                        {sec.questions.map((q, j) => (
-                          <div key={j} className="flex gap-4">
-                            <span className="font-bold text-slate-400 pt-0.5">Q{j + 1}.</span>
-                            <div className="flex-1 space-y-3">
-                              <p className="font-medium text-slate-800 leading-relaxed">{q.question}</p>
-                              {q.options && q.options.length > 0 && (
-                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 list-none p-0">
-                                  {q.options.map((opt, k) => (
-                                    <li key={k} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
-                                        {['A', 'B', 'C', 'D', 'E'][k]}
-                                      </span>
-                                      <span className="text-sm font-medium text-slate-700 pt-0.5">{opt}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                              <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 inline-block w-full text-sm">
-                                <span className="font-bold text-emerald-800 uppercase tracking-widest text-[10px] block mb-1">Answer Key</span>
-                                <span className="font-medium text-emerald-900">{q.answer}</span>
+                      <div className="w-px h-8 bg-slate-200"></div>
+                      <div className="flex flex-col text-center">
+                        <span className="text-slate-400 text-[10px] uppercase tracking-widest">Marks</span>
+                        <span className="text-indigo-600">{questionPaper.totalMarks}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 md:p-10 space-y-10">
+                    {questionPaper.sections.map((sec, i) => (
+                      <div key={i}>
+                        <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-2">
+                          <h4 className="font-extrabold text-lg text-slate-800">{sec.sectionName}</h4>
+                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md print:hidden">
+                            {sec.marksPerQuestion} mark{sec.marksPerQuestion > 1 ? 's' : ''} each
+                          </span>
+                        </div>
+                        <div className="space-y-8">
+                          {sec.questions.map((q, j) => (
+                            <div key={j} className="flex gap-4">
+                              <span className="font-bold text-slate-400 pt-0.5">Q{j + 1}.</span>
+                              <div className="flex-1 space-y-3">
+                                <p className="font-medium text-slate-800 leading-relaxed">{q.question}</p>
+                                {testViewMode === 'paper' && q.options && q.options.length > 0 && (
+                                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 list-none p-0">
+                                    {q.options.map((opt, k) => (
+                                      <li key={k} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
+                                          {['A', 'B', 'C', 'D', 'E'][k]}
+                                        </span>
+                                        <span className="text-sm font-medium text-slate-700 pt-0.5">{opt}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                                {testViewMode === 'answer_key' && (
+                                  <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 inline-block w-full text-sm">
+                                    <span className="font-bold text-emerald-800 uppercase tracking-widest text-[10px] block mb-1">Answer</span>
+                                    <span className="font-medium text-emerald-900">{q.answer}</span>
+                                  </div>
+                                )}
                               </div>
+                              {testViewMode === 'paper' && (
+                                <div className="hidden print:block font-bold text-slate-400">
+                                  [{sec.marksPerQuestion}]
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
-                <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-end gap-3 print:hidden">
+                  <button 
+                    onClick={() => handlePrintTestHistory()}
+                    className="px-4 py-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print
+                  </button>
+                  <button 
+                    onClick={generateTestHistoryPDF}
+                    disabled={isDownloadingPdf}
+                    className="px-4 py-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    {isDownloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    Download PDF
+                  </button>
                   <button 
                     onClick={() => {
                       setQuestionPaper(null); 
                       setTestSelectedLessons([]); 
                       setTestSelectedTopics([]);
                     }}
-                    className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors text-sm"
+                    className="px-6 py-2 rounded-xl font-bold text-white bg-slate-800 hover:bg-slate-900 transition-colors shadow-sm text-sm"
                   >
                     Create Another
                   </button>

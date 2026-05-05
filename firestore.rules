@@ -28,6 +28,18 @@ service cloud.firestore {
         && data.userId == request.auth.uid;
     }
 
+    function isValidActivityLog(data) {
+      return data.keys().hasAll(['userId', 'createdAt', 'activities', 'classLevel', 'subject'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidQuestionPaperLog(data) {
+      return data.keys().hasAll(['userId', 'createdAt', 'paper', 'classLevel', 'subject'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
     match /lessonPlans/{lessonPlanId} {
       allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
@@ -48,6 +60,42 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly(['preliminaryInformation', 'instructionalObjectives', 'entryBehaviour', 'instructionalAids', 'instructionalProcedure', 'summary', 'activities', 'finalEvaluation']);
 
       allow delete: if isAuthenticated() && isValidId(lessonPlanId) && existing().userId == request.auth.uid;
+    }
+
+    match /activities/{activityId} {
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow get: if isAuthenticated() && isValidId(activityId) && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && isValidId(activityId)
+        && isValidActivityLog(incoming())
+        && incoming().createdAt == request.time
+        && incoming().keys().hasOnly(['userId', 'createdAt', 'activities', 'classLevel', 'subject', 'lesson', 'topic']);
+      allow update: if isAuthenticated()
+        && isValidId(activityId)
+        && isValidActivityLog(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['activities', 'classLevel', 'subject', 'lesson', 'topic']);
+      allow delete: if isAuthenticated() && isValidId(activityId) && existing().userId == request.auth.uid;
+    }
+
+    match /questionPapers/{paperId} {
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow get: if isAuthenticated() && isValidId(paperId) && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && isValidId(paperId)
+        && isValidQuestionPaperLog(incoming())
+        && incoming().createdAt == request.time
+        && incoming().keys().hasOnly(['userId', 'createdAt', 'paper', 'classLevel', 'subject']);
+      allow update: if isAuthenticated()
+        && isValidId(paperId)
+        && isValidQuestionPaperLog(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['paper', 'classLevel', 'subject']);
+      allow delete: if isAuthenticated() && isValidId(paperId) && existing().userId == request.auth.uid;
     }
   }
 }

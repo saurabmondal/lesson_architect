@@ -17,12 +17,48 @@
         "createdAt": { "type": "string" }
       },
       "required": ["userId", "createdAt", "preliminaryInformation"]
+    },
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "Generated standalone activities.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "classLevel": { "type": "string" },
+        "subject": { "type": "string" },
+        "lesson": { "type": "string" },
+        "topic": { "type": "string" },
+        "activities": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "createdAt", "activities", "classLevel", "subject"]
+    },
+    "QuestionPaperLog": {
+      "title": "Question Paper Log",
+      "description": "Generated question paper.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "classLevel": { "type": "string" },
+        "subject": { "type": "string" },
+        "paper": { "type": "object" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "createdAt", "paper", "classLevel", "subject"]
     }
   },
   "firestore": {
     "lessonPlans/{lessonPlanId}": {
       "schema": { "$ref": "LessonPlan" },
       "description": "Generated lesson plans"
+    },
+    "activities/{activityId}": {
+      "schema": { "$ref": "ActivityLog" },
+      "description": "Generated standalone activities."
+    },
+    "questionPapers/{paperId}": {
+      "schema": { "$ref": "QuestionPaperLog" },
+      "description": "Generated question papers."
     }
   }
 }
