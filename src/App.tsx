@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut } from 'lucide-react';
+import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut, Menu, X, Rocket, FileText, CheckSquare, Plus, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { useReactToPrint } from 'react-to-print';
-import { type LessonPlan } from './lib/gemini';
-import { generateLessonPlanWithGroq } from './lib/groq';
+import { type LessonPlan, type QuestionPaper } from './lib/gemini';
+import { generateLessonPlanWithGroq, generateActivitiesWithGroq, generateQuestionPaperWithGroq } from './lib/groq';
 import { useAuth } from './components/AuthProvider';
 import { fetchUserLessonPlans, saveLessonPlan, SavedLessonPlan } from './lib/firestore';
 import mathTemplate from './data/math_template.json';
@@ -25,6 +25,31 @@ export default function App() {
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [error, setError] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedLessonPlan[]>([]);
+  
+  // Mobile Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Page Routing State
+  const [activePage, setActivePage] = useState<'generator' | 'history' | 'activities' | 'test'>('generator');
+
+  // Standalone Activities State
+  const [activityClassLevel, setActivityClassLevel] = useState<string>('');
+  const [activitySubject, setActivitySubject] = useState<string>('');
+  const [activityLesson, setActivityLesson] = useState<string>('');
+  const [activityTopic, setActivityTopic] = useState<string>('');
+  const [standaloneActivities, setStandaloneActivities] = useState<string[]>([]);
+  const [isGeneratingActivities, setIsGeneratingActivities] = useState(false);
+  const [activityError, setActivityError] = useState('');
+
+  // Test Generator State
+  const [testClassLevel, setTestClassLevel] = useState<string>('');
+  const [testSubject, setTestSubject] = useState<string>('');
+  const [testSelectedLessons, setTestSelectedLessons] = useState<string[]>([]);
+  const [testSelectedTopics, setTestSelectedTopics] = useState<string[]>([]);
+  const [testTotalMarks, setTestTotalMarks] = useState<number>(25);
+  const [isGeneratingTest, setIsGeneratingTest] = useState(false);
+  const [testError, setTestError] = useState('');
+  const [questionPaper, setQuestionPaper] = useState<QuestionPaper | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -36,17 +61,23 @@ export default function App() {
     }
   }, [user]);
 
-  const getLessons = () => {
-    if (!classLevel || !subject) return [];
-    const data = topicsData[classLevel as keyof typeof topicsData]?.[subject as 'Mathematics' | 'Computer Science'];
+  const getLessonsList = (c: string, s: string) => {
+    if (!c || !s) return [];
+    const data = topicsData[c as keyof typeof topicsData]?.[s as 'Mathematics' | 'Computer Science'];
     return data ? Object.keys(data) : [];
   };
 
-  const getTopics = (l: string) => {
-    if (!classLevel || !subject) return [];
-    const data = topicsData[classLevel as keyof typeof topicsData]?.[subject as 'Mathematics' | 'Computer Science'];
+  const getTopicsList = (c: string, s: string, l: string) => {
+    if (!c || !s) return [];
+    const data = topicsData[c as keyof typeof topicsData]?.[s as 'Mathematics' | 'Computer Science'];
     return (data && (data as any)[l]) ? (data as any)[l] : [];
   };
+
+  const getLessons = () => getLessonsList(classLevel, subject);
+  const getTopics = (l: string) => getTopicsList(classLevel, subject, l);
+
+  const getActivityLessons = () => getLessonsList(activityClassLevel, activitySubject);
+  const getActivityTopics = (l: string) => getTopicsList(activityClassLevel, activitySubject, l);
 
   useEffect(() => {
     setLesson('');
@@ -55,6 +86,93 @@ export default function App() {
   useEffect(() => {
     setTopic('');
   }, [lesson]);
+
+  useEffect(() => {
+    setActivityLesson('');
+  }, [activityClassLevel, activitySubject]);
+
+  useEffect(() => {
+    setActivityTopic('');
+  }, [activityLesson]);
+
+  useEffect(() => {
+    setTestSelectedLessons([]);
+    setTestSelectedTopics([]);
+  }, [testClassLevel, testSubject]);
+
+  const getTestLessons = () => getLessonsList(testClassLevel, testSubject);
+  const getTestTopics = (l: string) => getTopicsList(testClassLevel, testSubject, l);
+
+  const handleToggleTestLesson = (l: string) => {
+    setTestSelectedLessons(prev => 
+      prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]
+    );
+    // Remove topics associated with unselected lesson
+    setTestSelectedTopics(prev => prev.filter(t => {
+      const lessonTopics = getTestTopics(l);
+      if (lessonTopics.includes(t)) {
+        return false;
+      }
+      return true;
+    }));
+  };
+
+  const handleToggleTestTopic = (t: string) => {
+    setTestSelectedTopics(prev => 
+      prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]
+    );
+  };
+
+  const handleGenerateTest = async () => {
+    if (testSelectedLessons.length === 0) {
+      setTestError("Please select at least one lesson.");
+      return;
+    }
+    if (testTotalMarks <= 0) {
+      setTestError("Please enter a valid total marks greater than 0.");
+      return;
+    }
+    setTestError('');
+    setIsGeneratingTest(true);
+    setQuestionPaper(null);
+    try {
+      const paper = await generateQuestionPaperWithGroq({
+        classLevel: testClassLevel,
+        subject: testSubject,
+        lessons: testSelectedLessons,
+        topics: testSelectedTopics,
+        totalMarks: testTotalMarks
+      });
+      setQuestionPaper(paper);
+    } catch (err: any) {
+      setTestError(err.message || "An error occurred while generating test.");
+    } finally {
+      setIsGeneratingTest(false);
+    }
+  };
+
+  const handleGenerateActivities = async () => {
+    if (!activityLesson.trim() || !activityTopic.trim()) {
+      setActivityError("Please ensure a lesson and topic are selected.");
+      return;
+    }
+    setActivityError('');
+    setIsGeneratingActivities(true);
+    setStandaloneActivities([]);
+    try {
+      const activities = await generateActivitiesWithGroq({
+        classLevel: activityClassLevel,
+        subject: activitySubject,
+        lesson: activityLesson,
+        topic: activityTopic
+      });
+      setStandaloneActivities(activities);
+    } catch (err: any) {
+      setActivityError(err.message || "An error occurred while generating activities.");
+    } finally {
+      setIsGeneratingActivities(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!lesson.trim() || !topic.trim()) {
@@ -148,34 +266,486 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-fuchsia-50 via-violet-100 to-cyan-100 text-slate-900 selection:bg-fuchsia-200 selection:text-fuchsia-900 print:bg-white font-sans antialiased">
-      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 print:hidden flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-2 rounded-xl shadow-md">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <span className="font-bold text-xl tracking-tight text-violet-900">Lesson Architect</span>
-        </div>
-        <div>
-          {!loading && user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-slate-600 hidden sm:inline-block">
-                {user.email}
-              </span>
-              <button 
-                onClick={logOut}
-                className="bg-white/60 hover:bg-white text-rose-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2 border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </header>
+    <div className="flex flex-col md:flex-row min-h-screen w-full bg-gradient-to-br from-fuchsia-50 via-violet-100 to-cyan-100 text-slate-900 selection:bg-fuchsia-200 selection:text-fuchsia-900 print:bg-white font-sans antialiased overflow-hidden">
+      
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-violet-900/20 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+      {/* Left Sidebar (Print hidden) */}
+      <aside className={`fixed z-50 w-80 flex-shrink-0 bg-white/80 backdrop-blur-2xl border-r border-violet-200 shadow-2xl print:hidden flex flex-col h-screen top-0 left-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Logo and App Name */}
+        <div className="p-6 border-b border-violet-100 bg-white/50 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-2 rounded-xl shadow-md">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <span className="font-bold tracking-tight text-violet-900">Lesson Architect</span>
+          </div>
+          <button 
+            className="text-violet-500 hover:text-violet-700 p-2 -mr-2 bg-violet-50 rounded-lg transition-colors hover:bg-violet-100"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Sidebar Navigation */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 mt-4">
+          <button 
+            onClick={() => { setActivePage('generator'); setIsSidebarOpen(false); setLessonPlan(null); }}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
+              activePage === 'generator' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            New Lesson Plan
+          </button>
+          
+          <button 
+            onClick={() => { setActivePage('history'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
+              activePage === 'history' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
+            }`}
+          >
+            <BookOpen className="w-5 h-5" />
+            History
+          </button>
+
+          <button 
+            onClick={() => { setActivePage('activities'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
+              activePage === 'activities' ? 'bg-fuchsia-100 text-fuchsia-800' : 'text-slate-600 hover:bg-fuchsia-50 hover:text-fuchsia-700'
+            }`}
+          >
+            <Rocket className="w-5 h-5" />
+            Activities
+          </button>
+
+          <button 
+            onClick={() => { setActivePage('test'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
+              activePage === 'test' ? 'bg-cyan-100 text-cyan-800' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-700'
+            }`}
+          >
+            <FileText className="w-5 h-5" />
+            Test Generator
+          </button>
+        </div>
+
+        {/* User Info & Logout (Bottom of sidebar) */}
+        {!loading && (
+          <div className="p-4 border-t border-violet-100 bg-white/50 mt-auto">
+            {user ? (
+              <div className="flex flex-col gap-3">
+                <span className="text-xs font-bold text-slate-600 px-2 truncate">
+                  {user.email}
+                </span>
+                <button 
+                  onClick={logOut}
+                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 border border-rose-200 focus:outline-none"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <span className="text-xs font-bold text-slate-500 px-2 text-center">
+                  Sign in to save plans
+                </span>
+                <button 
+                  onClick={signIn}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 border border-violet-700 focus:outline-none"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto w-full relative">
+        {/* Header (Hamburger) */}
+        <div className="flex items-center p-4 md:px-8 print:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-violet-100 shadow-sm gap-4">
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 bg-white rounded-lg shadow-sm border border-violet-100 text-violet-700 hover:bg-violet-50 transition-colors flex items-center gap-2"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-1.5 rounded-lg shadow-sm hidden md:block">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-lg tracking-tight text-violet-900">Lesson Architect</span>
+          </div>
+        </div>
+
+        <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         
+        {/* === HISTORY VIEW === */}
+        {activePage === 'history' && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-fuchsia-600" />
+              Lesson Plan History
+            </h2>
+            {savedPlans.length > 0 ? (
+              <div className="grid gap-4">
+                {savedPlans.map((plan, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setLessonPlan(plan);
+                      setActivePage('generator');
+                    }}
+                    className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-violet-100 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                  >
+                    <p className="font-bold text-slate-800 text-lg group-hover:text-violet-700 transition-colors mb-2">{plan.preliminaryInformation.lessonName}</p>
+                    <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
+                      <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.subject}</span>
+                      <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.topicName}</span>
+                      <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {plan.preliminaryInformation.classLevel}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-violet-100 shadow-sm">
+                <BookOpen className="w-12 h-12 text-violet-300 mx-auto mb-4" />
+                <p className="text-slate-600 font-bold mb-2">No Plans Yet</p>
+                {user ? (
+                  <p className="text-sm text-slate-500">Your generated lesson plans will appear here.</p>
+                ) : (
+                  <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* === ACTIVITIES VIEW === */}
+        {activePage === 'activities' && (
+          <div className="max-w-xl mx-auto space-y-6">
+            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
+              <Rocket className="w-6 h-6 text-fuchsia-600" />
+              Generate Activities
+            </h2>
+            <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 border border-white/50">
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
+                  <select 
+                    value={activityClassLevel}
+                    onChange={(e) => setActivityClassLevel(e.target.value)}
+                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
+                  >
+                    <option value="" disabled>Select Class</option>
+                    {Object.keys(topicsData).map(c => (
+                      <option key={c} value={c}>Class {c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Subject</label>
+                  <select 
+                    value={activitySubject}
+                    onChange={(e) => setActivitySubject(e.target.value)}
+                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
+                  >
+                    <option value="" disabled>Select Subject</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Computer Science">Computer Science</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Lesson / Chapter</label>
+                  <select 
+                    value={activityLesson}
+                    onChange={(e) => setActivityLesson(e.target.value)}
+                    disabled={!activityClassLevel || !activitySubject}
+                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50"
+                  >
+                    <option value="" disabled>Select Lesson</option>
+                    {getActivityLessons().map(l => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Topic</label>
+                  <select 
+                    value={activityTopic}
+                    onChange={(e) => setActivityTopic(e.target.value)}
+                    disabled={!activityLesson}
+                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50"
+                  >
+                    <option value="" disabled>Select Topic</option>
+                    {getActivityTopics(activityLesson).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {activityError && (
+                  <div className="p-4 bg-rose-50 text-rose-700 text-sm font-bold rounded-xl border border-rose-200 flex items-start gap-3 shadow-sm">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600" />
+                    <span>{activityError}</span>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleGenerateActivities}
+                  disabled={isGeneratingActivities || !activityTopic}
+                  className="w-full py-4 mt-2 rounded-xl text-white font-bold bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700 shadow-md shadow-fuchsia-500/30 transition-all flex justify-center items-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingActivities ? <Loader2 className="w-5 h-5 animate-spin" /> : <Rocket className="w-5 h-5" />}
+                  Find Activities
+                </button>
+              </div>
+            </div>
+
+            {standaloneActivities.length > 0 && (
+              <div className="mt-8">
+                <h4 className="font-bold text-slate-800 text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span className="w-2 h-4 bg-fuchsia-500 rounded-sm"></span>
+                  Results
+                </h4>
+                <div className="space-y-4">
+                  {standaloneActivities.map((activity, i) => (
+                    <div key={i} className="bg-white border border-fuchsia-100 p-6 rounded-2xl shadow-sm text-base text-slate-700 leading-relaxed font-medium">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
+                        <h5 className="font-bold text-slate-900 tracking-tight">Activity Idea</h5>
+                      </div>
+                      <p>{activity}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* === TEST GENERATOR VIEW === */}
+        {activePage === 'test' && (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
+              <FileText className="w-6 h-6 text-cyan-600" />
+              Generate Question Paper
+            </h2>
+
+            {!questionPaper && !isGeneratingTest && (
+            <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 border border-white/50">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
+                    <select 
+                      value={testClassLevel}
+                      onChange={(e) => setTestClassLevel(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                    >
+                      <option value="" disabled>Select Class</option>
+                      {Object.keys(topicsData).map(c => (
+                        <option key={c} value={c}>Class {c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Subject</label>
+                    <select 
+                      value={testSubject}
+                      onChange={(e) => setTestSubject(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                    >
+                      <option value="" disabled>Select Subject</option>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Computer Science">Computer Science</option>
+                    </select>
+                  </div>
+                </div>
+
+                {testClassLevel && testSubject && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-3 ml-1 uppercase tracking-widest border-b border-slate-100 pb-2">Select Lessons & Topics</label>
+                    <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                      {getTestLessons().map((l: string) => (
+                        <div key={l} className="border border-slate-200 rounded-xl overflow-hidden bg-white/50">
+                          <label className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input 
+                              type="checkbox" 
+                              checked={testSelectedLessons.includes(l)}
+                              onChange={() => handleToggleTestLesson(l)}
+                              className="w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                            />
+                            <span className="font-bold text-slate-800 text-sm">{l}</span>
+                          </label>
+                          {testSelectedLessons.includes(l) && (
+                            <div className="bg-slate-50/50 p-3 pl-10 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {getTestTopics(l).map((t: string) => (
+                                <label key={t} className="flex items-start gap-2 cursor-pointer group">
+                                  <input 
+                                    type="checkbox"
+                                    checked={testSelectedTopics.includes(t)}
+                                    onChange={() => handleToggleTestTopic(t)}
+                                    className="w-3.5 h-3.5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 mt-1 shadow-sm"
+                                  />
+                                  <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 leading-tight block">{t}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Total Marks</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={testTotalMarks}
+                    onChange={(e) => setTestTotalMarks(parseInt(e.target.value) || 0)}
+                    className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                  />
+                </div>
+
+                {testError && (
+                  <div className="p-4 bg-rose-50 text-rose-700 text-sm font-bold rounded-xl border border-rose-200 flex items-start gap-3 shadow-sm">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600" />
+                    <span>{testError}</span>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleGenerateTest}
+                  disabled={isGeneratingTest || testSelectedLessons.length === 0}
+                  className="w-full py-4 mt-4 rounded-xl text-white font-bold bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-md shadow-cyan-500/30 transition-all flex justify-center items-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FileText className="w-5 h-5" />
+                  Generate Question Paper
+                </button>
+              </div>
+            </div>
+            )}
+
+            {isGeneratingTest && (
+               <motion.div 
+                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                 className="min-h-[50vh] flex flex-col items-center justify-center text-cyan-800"
+               >
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-cyan-300 rounded-full blur-2xl animate-pulse opacity-50"></div>
+                  <Loader2 className="w-16 h-16 animate-spin text-cyan-600 relative z-10" />
+                </div>
+                <p className="font-extrabold text-2xl text-cyan-900 drop-shadow-sm">Crafting question paper...</p>
+                <p className="text-sm text-cyan-700 mt-3 text-center max-w-sm font-medium">
+                  Designing challenging options and curating subjective problems.
+                </p>
+              </motion.div>
+            )}
+
+            {questionPaper && !isGeneratingTest && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden"
+              >
+                <div className="p-6 md:p-10 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-extrabold text-2xl text-slate-900 mb-1">{questionPaper.title}</h3>
+                    <p className="text-slate-500 font-medium text-sm flex gap-3">
+                      <span>Subject: <strong className="text-slate-700">{testSubject}</strong></span> &bull; 
+                      <span>Class <strong className="text-slate-700">{testClassLevel}</strong></span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
+                    <div className="flex flex-col text-center">
+                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Time</span>
+                      <span className="text-indigo-600">{questionPaper.duration}</span>
+                    </div>
+                    <div className="w-px h-8 bg-slate-200"></div>
+                    <div className="flex flex-col text-center">
+                      <span className="text-slate-400 text-[10px] uppercase tracking-widest">Marks</span>
+                      <span className="text-indigo-600">{questionPaper.totalMarks}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 md:p-10 space-y-10">
+                  {questionPaper.sections.map((sec, i) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-2">
+                        <h4 className="font-extrabold text-lg text-slate-800">{sec.sectionName}</h4>
+                        <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
+                          {sec.marksPerQuestion} mark{sec.marksPerQuestion > 1 ? 's' : ''} each
+                        </span>
+                      </div>
+                      <div className="space-y-8">
+                        {sec.questions.map((q, j) => (
+                          <div key={j} className="flex gap-4">
+                            <span className="font-bold text-slate-400 pt-0.5">Q{j + 1}.</span>
+                            <div className="flex-1 space-y-3">
+                              <p className="font-medium text-slate-800 leading-relaxed">{q.question}</p>
+                              {q.options && q.options.length > 0 && (
+                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 list-none p-0">
+                                  {q.options.map((opt, k) => (
+                                    <li key={k} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
+                                        {['A', 'B', 'C', 'D', 'E'][k]}
+                                      </span>
+                                      <span className="text-sm font-medium text-slate-700 pt-0.5">{opt}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                              <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 inline-block w-full text-sm">
+                                <span className="font-bold text-emerald-800 uppercase tracking-widest text-[10px] block mb-1">Answer Key</span>
+                                <span className="font-medium text-emerald-900">{q.answer}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                  <button 
+                    onClick={() => {
+                      setQuestionPaper(null); 
+                      setTestSelectedLessons([]); 
+                      setTestSelectedTopics([]);
+                    }}
+                    className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors text-sm"
+                  >
+                    Create Another
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* === GENERATOR VIEW === */}
+        {activePage === 'generator' && (
+          <>
         {/* Form Configuration State */}
         {!isGenerating && !lessonPlan && (
           <>
@@ -281,37 +851,6 @@ export default function App() {
               </div>
             </div>
           </motion.div>
-          
-          {savedPlans.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="max-w-xl mx-auto mt-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-violet-200/30 border border-white/50 overflow-hidden print:hidden p-8"
-            >
-              <h3 className="font-bold text-violet-900 mb-5 uppercase tracking-widest text-xs flex items-center gap-2">
-                <span className="w-2 h-4 bg-fuchsia-500 rounded-sm"></span>
-                History
-              </h3>
-              <div className="space-y-3">
-                {savedPlans.map((plan, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setLessonPlan(plan)}
-                    className="w-full text-left p-4 rounded-2xl border border-violet-100 hover:border-violet-300 hover:bg-white transition-all flex items-center justify-between group shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-800 group-hover:text-violet-700 transition-colors">{plan.preliminaryInformation.lessonName}</p>
-                      <p className="text-xs text-slate-500 mt-1 font-medium">{plan.preliminaryInformation.subject} &bull; {plan.preliminaryInformation.topicName}</p>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-violet-50 flex items-center justify-center text-violet-600 group-hover:bg-violet-100 transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
           </>
         )}
 
@@ -495,27 +1034,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Activities Section */}
-                  {lessonPlan.activities && lessonPlan.activities.length > 0 && (
-                    <div className="pt-6">
-                      <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center gap-2">
-                        <span className="w-2 h-4 bg-fuchsia-500 rounded-sm"></span>
-                        Activities & Games
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {lessonPlan.activities.map((activity, i) => (
-                          <div key={i} className="bg-white border border-fuchsia-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                            <div className="w-8 h-8 rounded-full bg-fuchsia-100 flex items-center justify-center text-fuchsia-600 font-bold mb-4">
-                              {i + 1}
-                            </div>
-                            <p className="text-slate-700 leading-relaxed font-medium">
-                              {activity}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Activities are now in the sidebar */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 print:break-before-auto border-t border-violet-100 pt-12">
                     {lessonPlan.summary && (
@@ -556,7 +1075,10 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
-      </main>
+        </>
+        )}
+        </main>
+      </div>
     </div>
   );
 }

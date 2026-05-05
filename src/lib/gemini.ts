@@ -2,6 +2,21 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+export interface QuestionPaper {
+  title: string;
+  duration: string;
+  totalMarks: number;
+  sections: {
+    sectionName: string;
+    marksPerQuestion: number;
+    questions: {
+      question: string;
+      options?: string[]; // for MCQ
+      answer: string;
+    }[];
+  }[];
+}
+
 export interface LessonPlan {
   preliminaryInformation: {
     classLevel: string;
