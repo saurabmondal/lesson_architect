@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut, Menu, X, Rocket, FileText, CheckSquare, Plus, Trash2, Sun, Moon } from 'lucide-react';
+import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut, Menu, X, Rocket, FileText, CheckSquare, Plus, Trash2, Sun, Moon, Search } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
@@ -56,6 +56,7 @@ export default function App() {
   const [testViewMode, setTestViewMode] = useState<'paper' | 'answer_key'>('paper');
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
 
   useEffect(() => {
     if (isDarkMode) {
@@ -468,6 +469,21 @@ export default function App() {
               History
             </h2>
             
+            
+            {/* === Search bar === */}
+            <div className="mb-6 relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search history by keyword, subject, class..."
+                value={historySearchQuery}
+                onChange={(e) => setHistorySearchQuery(e.target.value)}
+                className="block w-full pl-12 pr-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all text-slate-900 dark:text-slate-100 font-medium shadow-sm hover:border-violet-300 dark:hover:border-violet-700"
+              />
+            </div>
+
             <div className="flex flex-wrap gap-2 mb-6 border-b border-violet-100 dark:border-violet-800 pb-2">
               <button 
                 onClick={() => setActiveHistoryTab('lesson_plans')}
@@ -490,9 +506,17 @@ export default function App() {
             </div>
 
             {activeHistoryTab === 'lesson_plans' && (
-              savedPlans.length > 0 ? (
-                <div className="grid gap-4">
-                  {savedPlans.map((plan, i) => (
+              (() => {
+                const query = historySearchQuery.toLowerCase();
+                const filteredPlans = savedPlans.filter(plan => 
+                  plan.preliminaryInformation.lessonName.toLowerCase().includes(query) ||
+                  plan.preliminaryInformation.subject.toLowerCase().includes(query) ||
+                  plan.preliminaryInformation.topicName.toLowerCase().includes(query) ||
+                  plan.preliminaryInformation.classLevel.toLowerCase().includes(query)
+                );
+                return filteredPlans.length > 0 ? (
+                  <div className="grid gap-4">
+                    {filteredPlans.map((plan, i) => (
                     <button
                       key={plan.id || i}
                       onClick={() => {
@@ -520,13 +544,22 @@ export default function App() {
                     <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
-              )
+              );
+            })()
             )}
 
             {activeHistoryTab === 'activities' && (
-              savedActivities.length > 0 ? (
-                <div className="grid gap-4">
-                  {savedActivities.map((act, i) => (
+              (() => {
+                const query = historySearchQuery.toLowerCase();
+                const filteredActivities = savedActivities.filter(act => 
+                  (act.subject && act.subject.toLowerCase().includes(query)) ||
+                  (act.classLevel && act.classLevel.toLowerCase().includes(query)) ||
+                  (act.lesson && act.lesson.toLowerCase().includes(query)) ||
+                  (act.topic && act.topic.toLowerCase().includes(query))
+                );
+                return filteredActivities.length > 0 ? (
+                  <div className="grid gap-4">
+                    {filteredActivities.map((act, i) => (
                     <button
                       key={act.id || i}
                       onClick={() => {
@@ -551,20 +584,28 @@ export default function App() {
               ) : (
                 <div className="text-center p-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl border border-fuchsia-100 dark:border-fuchsia-800 shadow-sm">
                   <Rocket className="w-12 h-12 text-fuchsia-700 dark:text-fuchsia-300 mx-auto mb-4" />
-                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Activities Yet</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Activities Found</p>
                   {user ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-500">Your generated activities will appear here.</p>
+                    <p className="text-sm text-slate-500">No activities matched your search or you haven't generated any yet.</p>
                   ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
+                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
-              )
+              );
+            })()
             )}
 
             {activeHistoryTab === 'test_papers' && (
-              savedQuestionPapers.length > 0 ? (
-                <div className="grid gap-4">
-                  {savedQuestionPapers.map((paperLog, i) => (
+              (() => {
+                const query = historySearchQuery.toLowerCase();
+                const filteredPapers = savedQuestionPapers.filter(paperLog => 
+                  (paperLog.subject && paperLog.subject.toLowerCase().includes(query)) ||
+                  (paperLog.classLevel && paperLog.classLevel.toLowerCase().includes(query)) ||
+                  (paperLog.paper.title && paperLog.paper.title.toLowerCase().includes(query))
+                );
+                return filteredPapers.length > 0 ? (
+                  <div className="grid gap-4">
+                    {filteredPapers.map((paperLog, i) => (
                     <button
                       key={paperLog.id || i}
                       onClick={() => {
@@ -589,14 +630,15 @@ export default function App() {
               ) : (
                 <div className="text-center p-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl border border-cyan-100 dark:border-cyan-800 shadow-sm">
                   <FileText className="w-12 h-12 text-cyan-700 dark:text-cyan-300 mx-auto mb-4" />
-                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Question Papers Yet</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Question Papers Found</p>
                   {user ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-500">Your generated question papers will appear here.</p>
+                    <p className="text-sm text-slate-500">No question papers matched your search or you haven't generated any yet.</p>
                   ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
+                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
-              )
+              );
+            })()
             )}
           </div>
         )}
