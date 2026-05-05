@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut, Menu, X, Rocket, FileText, CheckSquare, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Loader2, Sparkles, AlertCircle, Printer, ChevronLeft, ChevronRight, Download, LogIn, LogOut, Menu, X, Rocket, FileText, CheckSquare, Plus, Trash2, Sun, Moon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
@@ -54,6 +54,16 @@ export default function App() {
   const [testError, setTestError] = useState('');
   const [questionPaper, setQuestionPaper] = useState<QuestionPaper | null>(null);
   const [testViewMode, setTestViewMode] = useState<'paper' | 'answer_key'>('paper');
+
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const historyPaperRef = useRef<HTMLDivElement>(null);
   const handlePrintTestHistory = useReactToPrint({
@@ -318,7 +328,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen w-full bg-gradient-to-br from-fuchsia-50 via-violet-100 to-cyan-100 text-slate-900 selection:bg-fuchsia-200 selection:text-fuchsia-900 print:bg-white font-sans antialiased overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-screen w-full bg-gradient-to-br from-fuchsia-50 dark:from-slate-950 via-violet-100 dark:via-slate-900 to-cyan-100 dark:to-slate-800 text-slate-900 dark:text-slate-100 selection:bg-fuchsia-200 selection:text-fuchsia-900 print:bg-white font-sans antialiased overflow-hidden">
       
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
@@ -329,17 +339,17 @@ export default function App() {
       )}
 
       {/* Left Sidebar (Print hidden) */}
-      <aside className={`fixed z-50 w-80 flex-shrink-0 bg-white/80 backdrop-blur-2xl border-r border-violet-200 shadow-2xl print:hidden flex flex-col h-screen top-0 left-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed z-50 w-80 flex-shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-r border-violet-200 dark:border-violet-700 shadow-2xl print:hidden flex flex-col h-screen top-0 left-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo and App Name */}
-        <div className="p-6 border-b border-violet-100 bg-white/50 flex justify-between items-center">
+        <div className="p-6 border-b border-violet-100 dark:border-violet-800 bg-white/50 dark:bg-slate-900/50 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-2 rounded-xl shadow-md">
               <BookOpen className="w-5 h-5" />
             </div>
-            <span className="font-bold tracking-tight text-violet-900">Lesson Architect</span>
+            <span className="font-bold tracking-tight text-violet-900 dark:text-violet-100">Lesson Architect</span>
           </div>
           <button 
-            className="text-violet-500 hover:text-violet-700 p-2 -mr-2 bg-violet-50 rounded-lg transition-colors hover:bg-violet-100"
+            className="text-violet-500 dark:text-violet-400 hover:text-violet-700 p-2 -mr-2 bg-violet-50 dark:bg-violet-900/40 rounded-lg transition-colors hover:bg-violet-100 dark:hover:bg-violet-900/60"
             onClick={() => setIsSidebarOpen(false)}
           >
             <X className="w-5 h-5" />
@@ -350,9 +360,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto p-4 space-y-2 mt-4">
           <button 
             onClick={() => { setActivePage('generator'); setIsSidebarOpen(false); setLessonPlan(null); }}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
-              activePage === 'generator' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
-            }`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${ activePage === 'generator' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 dark:hover:bg-violet-900/40 hover:text-violet-700' }`}
           >
             <Sparkles className="w-5 h-5" />
             New Lesson Plan
@@ -360,9 +368,7 @@ export default function App() {
           
           <button 
             onClick={() => { setActivePage('history'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
-              activePage === 'history' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
-            }`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${ activePage === 'history' ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-violet-50 dark:hover:bg-violet-900/40 hover:text-violet-700' }`}
           >
             <BookOpen className="w-5 h-5" />
             History
@@ -370,9 +376,7 @@ export default function App() {
 
           <button 
             onClick={() => { setActivePage('activities'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
-              activePage === 'activities' ? 'bg-fuchsia-100 text-fuchsia-800' : 'text-slate-600 hover:bg-fuchsia-50 hover:text-fuchsia-700'
-            }`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${ activePage === 'activities' ? 'bg-fuchsia-100 text-fuchsia-800' : 'text-slate-600 hover:bg-fuchsia-50 hover:text-fuchsia-700' }`}
           >
             <Rocket className="w-5 h-5" />
             Activities
@@ -380,26 +384,39 @@ export default function App() {
 
           <button 
             onClick={() => { setActivePage('test'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${
-              activePage === 'test' ? 'bg-cyan-100 text-cyan-800' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-700'
-            }`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${ activePage === 'test' ? 'bg-cyan-100 text-cyan-800' : 'text-slate-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/40 hover:text-cyan-700' }`}
           >
             <FileText className="w-5 h-5" />
             Test Generator
           </button>
         </div>
 
+        <div className="p-4 border-t border-violet-100 dark:border-violet-800">
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="w-full flex items-center justify-between p-3 rounded-xl font-bold transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <span className="flex items-center gap-3">
+              {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+            </span>
+            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-violet-600' : 'bg-slate-300 dark:bg-slate-600'}`}>
+              <div className={`w-4 h-4 rounded-full bg-white transform transition-transform ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+          </button>
+        </div>
+
         {/* User Info & Logout (Bottom of sidebar) */}
         {!loading && (
-          <div className="p-4 border-t border-violet-100 bg-white/50 mt-auto">
+          <div className="p-4 border-t border-violet-100 dark:border-violet-800 bg-white/50 dark:bg-slate-900/50 mt-auto">
             {user ? (
               <div className="flex flex-col gap-3">
-                <span className="text-xs font-bold text-slate-600 px-2 truncate">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-2 truncate">
                   {user.email}
                 </span>
                 <button 
                   onClick={logOut}
-                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 border border-rose-200 focus:outline-none"
+                  className="w-full bg-rose-50 dark:bg-rose-900/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 border border-rose-200 dark:border-rose-800 focus:outline-none"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -407,7 +424,7 @@ export default function App() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                <span className="text-xs font-bold text-slate-500 px-2 text-center">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 px-2 text-center">
                   Sign in to save plans
                 </span>
                 <button 
@@ -426,10 +443,10 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-y-auto w-full relative">
         {/* Header (Hamburger) */}
-        <div className="flex items-center p-4 md:px-8 print:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-violet-100 shadow-sm gap-4">
+        <div className="flex items-center p-4 md:px-8 print:hidden sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-violet-100 dark:border-violet-800 shadow-sm gap-4">
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 bg-white rounded-lg shadow-sm border border-violet-100 text-violet-700 hover:bg-violet-50 transition-colors flex items-center gap-2"
+            className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-violet-100 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/40 transition-colors flex items-center gap-2"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -437,7 +454,7 @@ export default function App() {
             <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-1.5 rounded-lg shadow-sm hidden md:block">
               <BookOpen className="w-4 h-4" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-violet-900">Lesson Architect</span>
+            <span className="font-bold text-lg tracking-tight text-violet-900 dark:text-violet-100">Lesson Architect</span>
           </div>
         </div>
 
@@ -446,27 +463,27 @@ export default function App() {
         {/* === HISTORY VIEW === */}
         {activePage === 'history' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
-              <BookOpen className="w-6 h-6 text-fuchsia-600" />
+            <h2 className="text-2xl font-extrabold text-violet-900 dark:text-violet-100 mb-6 flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-fuchsia-600 dark:text-fuchsia-400" />
               History
             </h2>
             
-            <div className="flex flex-wrap gap-2 mb-6 border-b border-violet-100 pb-2">
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-violet-100 dark:border-violet-800 pb-2">
               <button 
                 onClick={() => setActiveHistoryTab('lesson_plans')}
-                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'lesson_plans' ? 'bg-violet-100 text-violet-900' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'lesson_plans' ? 'bg-violet-100 text-violet-900' : 'text-slate-500 hover:bg-slate-50/50'}`}
               >
                 Lesson Plans
               </button>
               <button 
                 onClick={() => setActiveHistoryTab('activities')}
-                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'activities' ? 'bg-fuchsia-100 text-fuchsia-900' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'activities' ? 'bg-fuchsia-100 text-fuchsia-900' : 'text-slate-500 hover:bg-slate-50/50'}`}
               >
                 Activities
               </button>
               <button 
                 onClick={() => setActiveHistoryTab('test_papers')}
-                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'test_papers' ? 'bg-cyan-100 text-cyan-900' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors ${activeHistoryTab === 'test_papers' ? 'bg-cyan-100 text-cyan-900' : 'text-slate-500 hover:bg-slate-50/50'}`}
               >
                 Question Papers
               </button>
@@ -482,25 +499,25 @@ export default function App() {
                         setLessonPlan(plan);
                         setActivePage('generator');
                       }}
-                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-violet-100 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-violet-100 dark:border-violet-800 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
                     >
-                      <p className="font-bold text-slate-800 text-lg group-hover:text-violet-700 transition-colors mb-2">{plan.preliminaryInformation.lessonName}</p>
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
-                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.subject}</span>
-                        <span className="bg-violet-100 text-violet-800 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.topicName}</span>
-                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {plan.preliminaryInformation.classLevel}</span>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-lg group-hover:text-violet-700 transition-colors mb-2">{plan.preliminaryInformation.lessonName}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-200 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.subject}</span>
+                        <span className="bg-violet-100 dark:bg-violet-900/60 text-violet-800 dark:text-violet-200 px-2.5 py-1 rounded-md">{plan.preliminaryInformation.topicName}</span>
+                        <span className="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-200 px-2.5 py-1 rounded-md">Class {plan.preliminaryInformation.classLevel}</span>
                       </div>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-violet-100 shadow-sm">
-                  <BookOpen className="w-12 h-12 text-violet-300 mx-auto mb-4" />
-                  <p className="text-slate-600 font-bold mb-2">No Plans Yet</p>
+                <div className="text-center p-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl border border-violet-100 dark:border-violet-800 shadow-sm">
+                  <BookOpen className="w-12 h-12 text-violet-700 dark:text-violet-300 mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Plans Yet</p>
                   {user ? (
-                    <p className="text-sm text-slate-500">Your generated lesson plans will appear here.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Your generated lesson plans will appear here.</p>
                   ) : (
-                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
               )
@@ -520,25 +537,25 @@ export default function App() {
                         setStandaloneActivities(act.activities);
                         setActivePage('activities');
                       }}
-                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-fuchsia-100 hover:border-fuchsia-300 hover:shadow-lg hover:shadow-fuchsia-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-fuchsia-100 dark:border-fuchsia-800 hover:border-fuchsia-300 hover:shadow-lg hover:shadow-fuchsia-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
                     >
-                      <p className="font-bold text-slate-800 text-lg group-hover:text-fuchsia-700 transition-colors mb-2">{act.topic || act.lesson || "Standalone Activities"}</p>
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
-                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{act.subject}</span>
-                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {act.classLevel}</span>
-                        <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">{act.activities.length} activities</span>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-lg group-hover:text-fuchsia-700 transition-colors mb-2">{act.topic || act.lesson || "Standalone Activities"}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-200 px-2.5 py-1 rounded-md">{act.subject}</span>
+                        <span className="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-200 px-2.5 py-1 rounded-md">Class {act.classLevel}</span>
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">{act.activities.length} activities</span>
                       </div>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-fuchsia-100 shadow-sm">
-                  <Rocket className="w-12 h-12 text-fuchsia-300 mx-auto mb-4" />
-                  <p className="text-slate-600 font-bold mb-2">No Activities Yet</p>
+                <div className="text-center p-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl border border-fuchsia-100 dark:border-fuchsia-800 shadow-sm">
+                  <Rocket className="w-12 h-12 text-fuchsia-700 dark:text-fuchsia-300 mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Activities Yet</p>
                   {user ? (
-                    <p className="text-sm text-slate-500">Your generated activities will appear here.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Your generated activities will appear here.</p>
                   ) : (
-                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
               )
@@ -557,26 +574,26 @@ export default function App() {
                         setActivePage('test');
                         setTestViewMode('paper');
                       }}
-                      className="w-full text-left p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-cyan-100 hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                      className="w-full text-left p-6 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-cyan-100 dark:border-cyan-800 hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-200/50 transition-all flex flex-col group shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-200"
                     >
-                      <p className="font-bold text-slate-800 text-lg group-hover:text-cyan-700 transition-colors mb-2">{paperLog.paper.title}</p>
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium tracking-tight">
-                        <span className="bg-fuchsia-100 text-fuchsia-800 px-2.5 py-1 rounded-md">{paperLog.subject}</span>
-                        <span className="bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-md">Class {paperLog.classLevel}</span>
-                        <span className="bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-md">{paperLog.paper.totalMarks} Marks</span>
-                        <span className="bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md">{paperLog.paper.duration}</span>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-lg group-hover:text-cyan-700 transition-colors mb-2">{paperLog.paper.title}</p>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium tracking-tight">
+                        <span className="bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-800 dark:text-fuchsia-200 px-2.5 py-1 rounded-md">{paperLog.subject}</span>
+                        <span className="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-200 px-2.5 py-1 rounded-md">Class {paperLog.classLevel}</span>
+                        <span className="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 px-2.5 py-1 rounded-md">{paperLog.paper.totalMarks} Marks</span>
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-md">{paperLog.paper.duration}</span>
                       </div>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="text-center p-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-cyan-100 shadow-sm">
-                  <FileText className="w-12 h-12 text-cyan-300 mx-auto mb-4" />
-                  <p className="text-slate-600 font-bold mb-2">No Question Papers Yet</p>
+                <div className="text-center p-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl border border-cyan-100 dark:border-cyan-800 shadow-sm">
+                  <FileText className="w-12 h-12 text-cyan-700 dark:text-cyan-300 mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 font-bold mb-2">No Question Papers Yet</p>
                   {user ? (
-                    <p className="text-sm text-slate-500">Your generated question papers will appear here.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Your generated question papers will appear here.</p>
                   ) : (
-                    <p className="text-sm text-slate-500">Please sign in to save and view your history.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">Please sign in to save and view your history.</p>
                   )}
                 </div>
               )
@@ -587,18 +604,18 @@ export default function App() {
         {/* === ACTIVITIES VIEW === */}
         {activePage === 'activities' && (
           <div className="max-w-xl mx-auto space-y-6">
-            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
-              <Rocket className="w-6 h-6 text-fuchsia-600" />
+            <h2 className="text-2xl font-extrabold text-violet-900 dark:text-violet-100 mb-6 flex items-center gap-3">
+              <Rocket className="w-6 h-6 text-fuchsia-600 dark:text-fuchsia-400" />
               Generate Activities
             </h2>
-            <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 border border-white/50">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 dark:shadow-violet-900/20 border border-slate-200/50">
               <div className="space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
                   <select 
                     value={activityClassLevel}
                     onChange={(e) => setActivityClassLevel(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
                   >
                     <option value="" disabled>Select Class</option>
                     {Object.keys(topicsData).map(c => (
@@ -608,11 +625,11 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Subject</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Subject</label>
                   <select 
                     value={activitySubject}
                     onChange={(e) => setActivitySubject(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm"
                   >
                     <option value="" disabled>Select Subject</option>
                     <option value="Mathematics">Mathematics</option>
@@ -621,12 +638,12 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Lesson / Chapter</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Lesson / Chapter</label>
                   <select 
                     value={activityLesson}
                     onChange={(e) => setActivityLesson(e.target.value)}
                     disabled={!activityClassLevel || !activitySubject}
-                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50"
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100/50"
                   >
                     <option value="" disabled>Select Lesson</option>
                     {getActivityLessons().map(l => (
@@ -636,12 +653,12 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Topic</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Topic</label>
                   <select 
                     value={activityTopic}
                     onChange={(e) => setActivityTopic(e.target.value)}
                     disabled={!activityLesson}
-                    className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-50"
+                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-fuchsia-200 focus:border-fuchsia-400 outline-none transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100/50"
                   >
                     <option value="" disabled>Select Topic</option>
                     {getActivityTopics(activityLesson).map(t => (
@@ -651,8 +668,8 @@ export default function App() {
                 </div>
 
                 {activityError && (
-                  <div className="p-4 bg-rose-50 text-rose-700 text-sm font-bold rounded-xl border border-rose-200 flex items-start gap-3 shadow-sm">
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600" />
+                  <div className="p-4 bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-sm font-bold rounded-xl border border-rose-200 dark:border-rose-800 flex items-start gap-3 shadow-sm">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
                     <span>{activityError}</span>
                   </div>
                 )}
@@ -670,16 +687,16 @@ export default function App() {
 
             {standaloneActivities.length > 0 && (
               <div className="mt-8">
-                <h4 className="font-bold text-slate-800 text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
                   <span className="w-2 h-4 bg-fuchsia-500 rounded-sm"></span>
                   Results
                 </h4>
                 <div className="space-y-4">
                   {standaloneActivities.map((activity, i) => (
-                    <div key={i} className="bg-white border border-fuchsia-100 p-6 rounded-2xl shadow-sm text-base text-slate-700 leading-relaxed font-medium">
+                    <div key={i} className="bg-white dark:bg-slate-900 border border-fuchsia-100 dark:border-fuchsia-800 p-6 rounded-2xl shadow-sm text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 text-fuchsia-700 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
-                        <h5 className="font-bold text-slate-900 tracking-tight">Activity Idea</h5>
+                        <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
+                        <h5 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">Activity Idea</h5>
                       </div>
                       <p>{activity}</p>
                     </div>
@@ -693,21 +710,21 @@ export default function App() {
         {/* === TEST GENERATOR VIEW === */}
         {activePage === 'test' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <h2 className="text-2xl font-extrabold text-violet-900 mb-6 flex items-center gap-3">
-              <FileText className="w-6 h-6 text-cyan-600" />
+            <h2 className="text-2xl font-extrabold text-violet-900 dark:text-violet-100 mb-6 flex items-center gap-3">
+              <FileText className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
               Generate Question Paper
             </h2>
 
             {!questionPaper && !isGeneratingTest && (
-            <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 border border-white/50">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl shadow-violet-200/50 dark:shadow-violet-900/20 border border-slate-200/50">
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Class Level</label>
                     <select 
                       value={testClassLevel}
                       onChange={(e) => setTestClassLevel(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                      className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
                     >
                       <option value="" disabled>Select Class</option>
                       {Object.keys(topicsData).map(c => (
@@ -717,11 +734,11 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Subject</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Subject</label>
                     <select 
                       value={testSubject}
                       onChange={(e) => setTestSubject(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                      className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
                     >
                       <option value="" disabled>Select Subject</option>
                       <option value="Mathematics">Mathematics</option>
@@ -732,30 +749,30 @@ export default function App() {
 
                 {testClassLevel && testSubject && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-3 ml-1 uppercase tracking-widest border-b border-slate-100 pb-2">Select Lessons & Topics</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Select Lessons & Topics</label>
                     <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                       {getTestLessons().map((l: string) => (
-                        <div key={l} className="border border-slate-200 rounded-xl overflow-hidden bg-white/50">
-                          <label className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div key={l} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white/50 dark:bg-slate-900/50">
+                          <label className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50/50 transition-colors">
                             <input 
                               type="checkbox" 
                               checked={testSelectedLessons.includes(l)}
                               onChange={() => handleToggleTestLesson(l)}
-                              className="w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                              className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-cyan-600 dark:text-cyan-400 focus:ring-cyan-500"
                             />
-                            <span className="font-bold text-slate-800 text-sm">{l}</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{l}</span>
                           </label>
                           {testSelectedLessons.includes(l) && (
-                            <div className="bg-slate-50/50 p-3 pl-10 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="bg-slate-100/30 p-3 pl-10 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {getTestTopics(l).map((t: string) => (
                                 <label key={t} className="flex items-start gap-2 cursor-pointer group">
                                   <input 
                                     type="checkbox"
                                     checked={testSelectedTopics.includes(t)}
                                     onChange={() => handleToggleTestTopic(t)}
-                                    className="w-3.5 h-3.5 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 mt-1 shadow-sm"
+                                    className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-cyan-600 dark:text-cyan-400 focus:ring-cyan-500 mt-1 shadow-sm"
                                   />
-                                  <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 leading-tight block">{t}</span>
+                                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 leading-tight block">{t}</span>
                                 </label>
                               ))}
                             </div>
@@ -767,19 +784,19 @@ export default function App() {
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-widest">Total Marks</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1 uppercase tracking-widest">Total Marks</label>
                   <input 
                     type="number"
                     min="1"
                     value={testTotalMarks}
                     onChange={(e) => setTestTotalMarks(parseInt(e.target.value) || 0)}
-                    className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 bg-white/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
+                    className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
                   />
                 </div>
 
                 {testError && (
-                  <div className="p-4 bg-rose-50 text-rose-700 text-sm font-bold rounded-xl border border-rose-200 flex items-start gap-3 shadow-sm">
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600" />
+                  <div className="p-4 bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-sm font-bold rounded-xl border border-rose-200 dark:border-rose-800 flex items-start gap-3 shadow-sm">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
                     <span>{testError}</span>
                   </div>
                 )}
@@ -787,7 +804,7 @@ export default function App() {
                 <button
                   onClick={handleGenerateTest}
                   disabled={isGeneratingTest || testSelectedLessons.length === 0}
-                  className="w-full py-4 mt-4 rounded-xl text-white font-bold bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-md shadow-cyan-500/30 transition-all flex justify-center items-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 mt-4 rounded-xl text-white font-bold bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-md shadow-cyan-500/30 dark:shadow-cyan-900/40 transition-all flex justify-center items-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FileText className="w-5 h-5" />
                   Generate Question Paper
@@ -799,14 +816,14 @@ export default function App() {
             {isGeneratingTest && (
                <motion.div 
                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                 className="min-h-[50vh] flex flex-col items-center justify-center text-cyan-800"
+                 className="min-h-[50vh] flex flex-col items-center justify-center text-cyan-800 dark:text-cyan-200"
                >
                 <div className="relative mb-8">
                   <div className="absolute inset-0 bg-cyan-300 rounded-full blur-2xl animate-pulse opacity-50"></div>
-                  <Loader2 className="w-16 h-16 animate-spin text-cyan-600 relative z-10" />
+                  <Loader2 className="w-16 h-16 animate-spin text-cyan-600 dark:text-cyan-400 relative z-10" />
                 </div>
-                <p className="font-extrabold text-2xl text-cyan-900 drop-shadow-sm">Crafting question paper...</p>
-                <p className="text-sm text-cyan-700 mt-3 text-center max-w-sm font-medium">
+                <p className="font-extrabold text-2xl text-cyan-900 dark:text-cyan-100 drop-shadow-sm">Crafting question paper...</p>
+                <p className="text-sm text-cyan-700 dark:text-cyan-300 mt-3 text-center max-w-sm font-medium">
                   Designing challenging options and curating subjective problems.
                 </p>
               </motion.div>
@@ -816,41 +833,41 @@ export default function App() {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden"
+                className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-black/40 border border-slate-200 dark:border-slate-700 overflow-hidden"
               >
-                <div className="flex border-b border-slate-200 bg-slate-50">
+                <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-100/50">
                   <button
                     onClick={() => setTestViewMode('paper')}
-                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'paper' ? 'text-indigo-600 bg-white border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
+                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'paper' ? 'text-indigo-600 bg-white dark:bg-slate-900 border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700'}`}
                   >
                     Question Paper
                   </button>
                   <button
                     onClick={() => setTestViewMode('answer_key')}
-                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'answer_key' ? 'text-emerald-600 bg-white border-b-2 border-emerald-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
+                    className={`flex-1 py-4 text-sm font-bold transition-colors ${testViewMode === 'answer_key' ? 'text-emerald-600 bg-white dark:bg-slate-900 border-b-2 border-emerald-600' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700'}`}
                   >
                     Answer Key
                   </button>
                 </div>
                 
-                <div ref={historyPaperRef} className="print-test-container bg-white">
-                  <div className="p-6 md:p-10 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
+                <div ref={historyPaperRef} className="print-test-container bg-white dark:bg-slate-900">
+                  <div className="p-6 md:p-10 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-900">
                     <div>
-                      <h3 className="font-extrabold text-2xl text-slate-900 mb-1">{questionPaper.title} {testViewMode === 'answer_key' && <span className="text-emerald-600 ml-2">(Answer Key)</span>}</h3>
-                      <p className="text-slate-500 font-medium text-sm flex gap-3">
-                        <span>Subject: <strong className="text-slate-700">{testSubject}</strong></span> &bull; 
-                        <span>Class <strong className="text-slate-700">{testClassLevel}</strong></span>
+                      <h3 className="font-extrabold text-2xl text-slate-900 dark:text-slate-100 mb-1">{questionPaper.title} {testViewMode === 'answer_key' && <span className="text-emerald-600 dark:text-emerald-400 ml-2">(Answer Key)</span>}</h3>
+                      <p className="text-slate-500 dark:text-slate-500 font-medium text-sm flex gap-3">
+                        <span>Subject: <strong className="text-slate-700 dark:text-slate-300">{testSubject}</strong></span> &bull; 
+                        <span>Class <strong className="text-slate-700 dark:text-slate-300">{testClassLevel}</strong></span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-4 text-sm font-bold bg-slate-50 px-4 py-2 rounded-xl shadow-sm border border-slate-200 print:hidden">
+                    <div className="flex items-center gap-4 text-sm font-bold bg-slate-100/50 px-4 py-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 print:hidden">
                       <div className="flex flex-col text-center">
-                        <span className="text-slate-400 text-[10px] uppercase tracking-widest">Time</span>
-                        <span className="text-indigo-600">{questionPaper.duration}</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest">Time</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">{questionPaper.duration}</span>
                       </div>
-                      <div className="w-px h-8 bg-slate-200"></div>
+                      <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                       <div className="flex flex-col text-center">
-                        <span className="text-slate-400 text-[10px] uppercase tracking-widest">Marks</span>
-                        <span className="text-indigo-600">{questionPaper.totalMarks}</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest">Marks</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">{questionPaper.totalMarks}</span>
                       </div>
                     </div>
                   </div>
@@ -858,39 +875,39 @@ export default function App() {
                   <div className="p-6 md:p-10 space-y-10">
                     {questionPaper.sections.map((sec, i) => (
                       <div key={i}>
-                        <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-2">
-                          <h4 className="font-extrabold text-lg text-slate-800">{sec.sectionName}</h4>
-                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md print:hidden">
+                        <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
+                          <h4 className="font-extrabold text-lg text-slate-800 dark:text-slate-200">{sec.sectionName}</h4>
+                          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md print:hidden">
                             {sec.marksPerQuestion} mark{sec.marksPerQuestion > 1 ? 's' : ''} each
                           </span>
                         </div>
                         <div className="space-y-8">
                           {sec.questions.map((q, j) => (
                             <div key={j} className="flex gap-4">
-                              <span className="font-bold text-slate-400 pt-0.5">Q{j + 1}.</span>
+                              <span className="font-bold text-slate-400 dark:text-slate-500 pt-0.5">Q{j + 1}.</span>
                               <div className="flex-1 space-y-3">
-                                <p className="font-medium text-slate-800 leading-relaxed">{q.question}</p>
+                                <p className="font-medium text-slate-800 dark:text-slate-200 leading-relaxed">{q.question}</p>
                                 {testViewMode === 'paper' && q.options && q.options.length > 0 && (
                                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 list-none p-0">
                                     {q.options.map((opt, k) => (
-                                      <li key={k} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
+                                      <li key={k} className="flex items-start gap-3 p-3 bg-slate-100/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-500 dark:text-slate-500 shadow-sm">
                                           {['A', 'B', 'C', 'D', 'E'][k]}
                                         </span>
-                                        <span className="text-sm font-medium text-slate-700 pt-0.5">{opt}</span>
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 pt-0.5">{opt}</span>
                                       </li>
                                     ))}
                                   </ul>
                                 )}
                                 {testViewMode === 'answer_key' && (
-                                  <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 inline-block w-full text-sm">
-                                    <span className="font-bold text-emerald-800 uppercase tracking-widest text-[10px] block mb-1">Answer</span>
-                                    <span className="font-medium text-emerald-900">{q.answer}</span>
+                                  <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/40 rounded-xl border border-emerald-100 dark:border-emerald-800 inline-block w-full text-sm">
+                                    <span className="font-bold text-emerald-800 dark:text-emerald-200 uppercase tracking-widest text-[10px] block mb-1">Answer</span>
+                                    <span className="font-medium text-emerald-900 dark:text-emerald-100">{q.answer}</span>
                                   </div>
                                 )}
                               </div>
                               {testViewMode === 'paper' && (
-                                <div className="hidden print:block font-bold text-slate-400">
+                                <div className="hidden print:block font-bold text-slate-400 dark:text-slate-500">
                                   [{sec.marksPerQuestion}]
                                 </div>
                               )}
@@ -902,10 +919,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-end gap-3 print:hidden">
+                <div className="p-6 bg-slate-100/50 border-t border-slate-200 dark:border-slate-700 flex flex-wrap justify-end gap-3 print:hidden">
                   <button 
                     onClick={() => handlePrintTestHistory()}
-                    className="px-4 py-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm"
+                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50/50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm"
                   >
                     <Printer className="w-4 h-4" />
                     Print
@@ -913,7 +930,7 @@ export default function App() {
                   <button 
                     onClick={generateTestHistoryPDF}
                     disabled={isDownloadingPdf}
-                    className="px-4 py-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm disabled:opacity-50"
+                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50/50 hover:text-indigo-600 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 text-sm disabled:opacity-50"
                   >
                     {isDownloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     Download PDF
@@ -924,7 +941,7 @@ export default function App() {
                       setTestSelectedLessons([]); 
                       setTestSelectedTopics([]);
                     }}
-                    className="px-6 py-2 rounded-xl font-bold text-white bg-slate-800 hover:bg-slate-900 transition-colors shadow-sm text-sm"
+                    className="px-6 py-2 rounded-xl font-bold text-white bg-slate-800 dark:bg-slate-100 hover:bg-slate-900 transition-colors shadow-sm text-sm"
                   >
                     Create Another
                   </button>
@@ -943,9 +960,9 @@ export default function App() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-violet-200/50 border border-white/50 overflow-hidden print:hidden"
+              className="max-w-xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-violet-200/50 dark:shadow-violet-900/20 border border-slate-200/50 overflow-hidden print:hidden"
             >
-            <div className="p-8 border-b border-violet-100 bg-gradient-to-br from-violet-100/50 to-fuchsia-50/50 text-center">
+            <div className="p-8 border-b border-violet-100 dark:border-violet-800 bg-gradient-to-br from-violet-100/50 to-fuchsia-50/50 text-center">
               <div className="inline-flex bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-3 rounded-2xl shadow-lg shadow-violet-300 mb-5">
                 <Sparkles className="w-7 h-7" />
               </div>
@@ -953,10 +970,10 @@ export default function App() {
               <p className="text-sm text-fuchsia-600/80 font-bold uppercase tracking-widest">AI-Powered Lesson Planner</p>
             </div>
 
-            <div className="p-8 space-y-7 bg-white/60 backdrop-blur-sm">
+            <div className="p-8 space-y-7 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
               {error && (
-                <div className="p-4 bg-rose-50/80 border border-rose-200 text-rose-700 rounded-xl text-sm flex items-start gap-3 shadow-sm">
-                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-rose-600" />
+                <div className="p-4 bg-rose-50/80 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-sm flex items-start gap-3 shadow-sm">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
                   <span className="leading-relaxed font-medium">{error}</span>
                 </div>
               )}
@@ -964,11 +981,11 @@ export default function App() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2.5">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Class Level</label>
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400">Class Level</label>
                     <select 
                       value={classLevel} 
                       onChange={(e) => setClassLevel(e.target.value)}
-                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 shadow-sm hover:border-violet-300"
+                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 dark:bg-slate-900/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 dark:text-violet-100 shadow-sm hover:border-violet-300"
                     >
                       <option value="" disabled>Select Class</option>
                       <option value="6">Class 6 (Middle)</option>
@@ -978,11 +995,11 @@ export default function App() {
                   </div>
 
                   <div className="space-y-2.5">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Subject</label>
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400">Subject</label>
                     <select 
                       value={subject} 
                       onChange={(e) => setSubject(e.target.value)}
-                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 shadow-sm hover:border-violet-300"
+                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 dark:bg-slate-900/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 dark:text-violet-100 shadow-sm hover:border-violet-300"
                     >
                       <option value="" disabled>Select Subject</option>
                       <option value="Mathematics">Mathematics</option>
@@ -992,11 +1009,11 @@ export default function App() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Lesson / Chapter</label>
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400">Lesson / Chapter</label>
                   <select 
                     value={lesson}
                     onChange={(e) => setLesson(e.target.value)}
-                    className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 shadow-sm hover:border-violet-300"
+                    className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 dark:bg-slate-900/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 dark:text-violet-100 shadow-sm hover:border-violet-300"
                   >
                     <option value="" disabled>Select Lesson</option>
                     {getLessons().map((l) => (
@@ -1006,12 +1023,12 @@ export default function App() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Topic</label>
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-violet-500 dark:text-violet-400">Topic</label>
                   {getTopics(lesson).length > 0 ? (
                     <select 
                       value={topic}
                       onChange={(e) => setTopic(e.target.value)}
-                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 shadow-sm hover:border-violet-300"
+                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 dark:bg-slate-900/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 dark:text-violet-100 shadow-sm hover:border-violet-300"
                     >
                       <option value="" disabled>Select Topic</option>
                       {getTopics(lesson).map((t: string) => (
@@ -1024,7 +1041,7 @@ export default function App() {
                       value={topic}
                       onChange={(e) => setTopic(e.target.value)}
                       placeholder="Enter topic..."
-                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 shadow-sm hover:border-violet-300"
+                      className="w-full px-4 py-3 border border-violet-200/60 rounded-xl bg-white/80 dark:bg-slate-900/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all text-sm font-bold text-violet-900 dark:text-violet-100 shadow-sm hover:border-violet-300"
                     />
                   )}
                 </div>
@@ -1049,14 +1066,14 @@ export default function App() {
         {isGenerating && (
            <motion.div 
              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-             className="min-h-[70vh] flex flex-col items-center justify-center text-violet-800 print:hidden"
+             className="min-h-[70vh] flex flex-col items-center justify-center text-violet-800 dark:text-violet-200 print:hidden"
            >
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-fuchsia-300 rounded-full blur-2xl animate-pulse opacity-50"></div>
-              <Loader2 className="w-16 h-16 animate-spin text-fuchsia-600 relative z-10" />
+              <Loader2 className="w-16 h-16 animate-spin text-fuchsia-600 dark:text-fuchsia-400 relative z-10" />
             </div>
-            <p className="font-extrabold text-3xl text-fuchsia-900 drop-shadow-sm">Designing your lesson...</p>
-            <p className="text-lg text-violet-700 mt-4 text-center max-w-md leading-relaxed font-medium">
+            <p className="font-extrabold text-3xl text-fuchsia-900 dark:text-fuchsia-100 drop-shadow-sm">Designing your lesson...</p>
+            <p className="text-lg text-violet-700 dark:text-violet-300 mt-4 text-center max-w-md leading-relaxed font-medium">
               Weaving definitions, meanings, examples, and creative teaching aids into a vibrant learning experience.
             </p>
           </motion.div>
@@ -1073,7 +1090,7 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 print:hidden">
                 <button 
                   onClick={() => setLessonPlan(null)}
-                  className="text-sm font-bold flex items-center gap-2 text-violet-600 hover:text-fuchsia-700 hover:bg-white/50 px-4 py-2.5 rounded-xl transition-all shadow-sm border border-transparent hover:border-violet-200"
+                  className="text-sm font-bold flex items-center gap-2 text-violet-500 dark:text-violet-400 hover:text-fuchsia-700 hover:bg-white/50 px-4 py-2.5 rounded-xl transition-all shadow-sm border border-transparent hover:border-violet-200"
                 >
                   <ChevronLeft className="w-5 h-5" />
                   Create New Plan
@@ -1089,7 +1106,7 @@ export default function App() {
                   </button>
                   <button 
                     onClick={handlePrint}
-                    className="bg-white hover:bg-violet-50 px-6 py-3 rounded-xl shadow-lg border border-violet-100 text-sm font-bold flex items-center gap-2.5 text-fuchsia-700 transition-all hover:shadow-xl focus:ring-2 focus:ring-fuchsia-200 focus:outline-none"
+                    className="bg-white dark:bg-slate-900 hover:bg-violet-50 dark:hover:bg-violet-900/40 px-6 py-3 rounded-xl shadow-lg border border-violet-100 dark:border-violet-800 text-sm font-bold flex items-center gap-2.5 text-fuchsia-700 dark:text-fuchsia-300 transition-all hover:shadow-xl focus:ring-2 focus:ring-fuchsia-200 focus:outline-none"
                   >
                     <Printer className="w-4 h-4" />
                     Print Document
@@ -1098,43 +1115,43 @@ export default function App() {
               </div>
 
               {/* The Document */}
-              <div id="lesson-plan-document" ref={contentRef} className="bg-white shadow-xl shadow-slate-200/40 rounded-3xl border border-slate-100 print:shadow-none print:border-none print:rounded-none">
+              <div id="lesson-plan-document" ref={contentRef} className="bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/40 rounded-3xl border border-slate-100 dark:border-slate-800 print:shadow-none print:border-none print:rounded-none">
                 
                 {/* Header */}
-                <div className="border-b-[6px] border-indigo-600 p-8 sm:p-14 bg-slate-50/50">
+                <div className="border-b-[6px] border-indigo-600 p-8 sm:p-14 bg-slate-100/30">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-8">
                     <div>
-                      <div className="inline-flex text-indigo-600 font-bold tracking-widest uppercase text-xs mb-4 bg-indigo-100/50 px-3 py-1.5 rounded-lg border border-indigo-200/50">
+                      <div className="inline-flex text-indigo-600 dark:text-indigo-400 font-bold tracking-widest uppercase text-xs mb-4 bg-indigo-100/50 px-3 py-1.5 rounded-lg border border-indigo-200/50">
                         Class {lessonPlan.preliminaryInformation.classLevel} &bull; {lessonPlan.preliminaryInformation.subject}
                       </div>
-                      <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 leading-tight mb-5">
+                      <h1 className="text-4xl sm:text-5xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-5">
                         {lessonPlan.preliminaryInformation.lessonName}
                       </h1>
-                      <div className="text-slate-600 flex items-center gap-3">
-                        <span className="font-bold text-slate-800 uppercase tracking-widest text-[11px] bg-slate-200/50 px-2 py-1 rounded">Topic</span> 
+                      <div className="text-slate-600 dark:text-slate-400 flex items-center gap-3">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[11px] bg-slate-200/50 px-2 py-1 rounded">Topic</span> 
                         <span className="text-lg font-medium">{lessonPlan.preliminaryInformation.topicName}</span>
                       </div>
                     </div>
                     <div className="flex flex-col lg:items-end justify-start gap-4 pt-2">
-                      <div className="inline-flex flex-col bg-white px-5 py-4 rounded-2xl border border-slate-200 shadow-sm text-sm min-w-40 text-center lg:text-right">
-                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5">Duration</span>
-                        <span className="font-mono font-bold text-indigo-600 text-lg">{lessonPlan.preliminaryInformation.duration}</span>
+                      <div className="inline-flex flex-col bg-white dark:bg-slate-900 px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-sm min-w-40 text-center lg:text-right">
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Duration</span>
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-lg">{lessonPlan.preliminaryInformation.duration}</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="h-px w-full bg-slate-200 mb-10"></div>
+                  <div className="h-px w-full bg-slate-200 dark:bg-slate-700 mb-10"></div>
 
                   <div className="grid grid-cols-1 gap-8">
                     <div>
-                      <h3 className="font-bold text-slate-900 mb-5 uppercase tracking-widest text-xs flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-5 uppercase tracking-widest text-xs flex items-center gap-2">
                          <span className="w-2 h-4 bg-indigo-500 rounded-sm"></span>
                          Instructional Objectives
                       </h3>
                       <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3 list-none p-0 m-0">
                         {lessonPlan.instructionalObjectives.map((obj, i) => (
-                          <li key={i} className="flex items-start gap-3 text-slate-700 leading-relaxed font-medium">
-                            <span className="text-indigo-400 mt-1 flex-shrink-0">
+                          <li key={i} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                            <span className="text-indigo-600 dark:text-indigo-400 mt-1 flex-shrink-0">
                               <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
                             </span>
                             <span>{obj}</span>
@@ -1150,14 +1167,14 @@ export default function App() {
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <div>
-                      <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
-                        <span className="bg-slate-100 p-2 rounded-lg"><BookOpen className="w-4 h-4 text-slate-600" /></span>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
+                        <span className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg"><BookOpen className="w-4 h-4 text-slate-600 dark:text-slate-400" /></span>
                         Entry Behaviour
                       </h3>
-                      <p className="text-slate-400 text-xs mb-5 font-medium uppercase tracking-wider">Prior knowledge expected</p>
-                      <ul className="list-none space-y-4 m-0 p-0 text-slate-700">
+                      <p className="text-slate-400 dark:text-slate-500 text-xs mb-5 font-medium uppercase tracking-wider">Prior knowledge expected</p>
+                      <ul className="list-none space-y-4 m-0 p-0 text-slate-700 dark:text-slate-300">
                         {lessonPlan.entryBehaviour.map((eb, i) => (
-                          <li key={i} className="flex items-start gap-4 leading-relaxed font-medium bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                          <li key={i} className="flex items-start gap-4 leading-relaxed font-medium bg-slate-100/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                             <div className="w-2 h-2 mt-2 rounded-full bg-indigo-400 flex-shrink-0"></div>
                             <span>{eb}</span>
                           </li>
@@ -1165,12 +1182,12 @@ export default function App() {
                       </ul>
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
-                        <span className="bg-slate-100 p-2 rounded-lg"><Sparkles className="w-4 h-4 text-slate-600" /></span>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
+                        <span className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg"><Sparkles className="w-4 h-4 text-slate-600 dark:text-slate-400" /></span>
                         Instructional Aids
                       </h3>
-                      <p className="text-slate-400 text-xs mb-5 font-medium uppercase tracking-wider">Materials required</p>
-                      <p className="text-slate-700 leading-relaxed p-6 bg-slate-50/80 rounded-2xl border border-slate-100 font-medium">
+                      <p className="text-slate-400 dark:text-slate-500 text-xs mb-5 font-medium uppercase tracking-wider">Materials required</p>
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed p-6 bg-slate-100/50/80 rounded-2xl border border-slate-100 dark:border-slate-800 font-medium">
                         {lessonPlan.instructionalAids}
                       </p>
                     </div>
@@ -1178,27 +1195,27 @@ export default function App() {
 
                   {/* The Instructional Procedure Table */}
                   <div className="pt-6">
-                    <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-6 uppercase tracking-widest text-xs flex items-center gap-2">
                       <span className="w-2 h-4 bg-indigo-500 rounded-sm"></span>
                       Instructional Procedure
                     </h3>
-                    <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                       <table className="w-full border-collapse text-sm text-left align-top">
                         <thead>
-                          <tr className="bg-slate-50/80 border-b border-slate-200 uppercase tracking-wider text-[10px]">
-                            <th className="p-5 font-bold text-slate-500 w-1/4 border-r border-slate-200">Content</th>
-                            <th className="p-5 font-bold text-slate-500 w-1/4 border-r border-slate-200">Learning Experiences<br/><span className="font-medium text-slate-400 mt-1.5 block tracking-wide normal-case">(Teacher & Student)</span></th>
-                            <th className="p-5 font-bold text-slate-500 w-1/4 border-r border-slate-200">Behavioural Objectives</th>
-                            <th className="p-5 font-bold text-slate-500 w-1/4">Evaluation</th>
+                          <tr className="bg-slate-100/50/80 border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider text-[10px]">
+                            <th className="p-5 font-bold text-slate-500 dark:text-slate-500 w-1/4 border-r border-slate-200 dark:border-slate-700">Content</th>
+                            <th className="p-5 font-bold text-slate-500 dark:text-slate-500 w-1/4 border-r border-slate-200 dark:border-slate-700">Learning Experiences<br/><span className="font-medium text-slate-400 dark:text-slate-500 mt-1.5 block tracking-wide normal-case">(Teacher & Student)</span></th>
+                            <th className="p-5 font-bold text-slate-500 dark:text-slate-500 w-1/4 border-r border-slate-200 dark:border-slate-700">Behavioural Objectives</th>
+                            <th className="p-5 font-bold text-slate-500 dark:text-slate-500 w-1/4">Evaluation</th>
                           </tr>
                         </thead>
                         <tbody>
                           {lessonPlan.instructionalProcedure.map((row, i) => (
-                            <tr key={i} className="even:bg-slate-50/30 border-b border-slate-200 last:border-0 print:break-inside-avoid">
-                              <td className="p-5 align-top text-slate-900 font-bold border-r border-slate-200 bg-white/50 text-[15px]">
+                            <tr key={i} className="even:bg-slate-100/50/30 border-b border-slate-200 dark:border-slate-700 last:border-0 print:break-inside-avoid">
+                              <td className="p-5 align-top text-slate-900 dark:text-slate-100 font-bold border-r border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 text-[15px]">
                                 {row.content}
                               </td>
-                              <td className="p-5 align-top text-slate-700 whitespace-pre-wrap leading-relaxed border-r border-slate-200 bg-white/50 font-medium [&_p]:mb-4 [&_p:last-child]:mb-0 [&_img]:rounded-xl [&_img]:my-4 [&_img]:w-full [&_img]:object-cover">
+                              <td className="p-5 align-top text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed border-r border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 font-medium [&_p]:mb-4 [&_p:last-child]:mb-0 [&_img]:rounded-xl [&_img]:my-4 [&_img]:w-full [&_img]:object-cover">
                                 <ReactMarkdown
                                   components={{
                                     img: (props) => {
@@ -1211,11 +1228,11 @@ export default function App() {
                                   {row.learningExperiences}
                                 </ReactMarkdown>
                               </td>
-                              <td className="p-5 align-top text-slate-600 border-r border-slate-200 bg-white/50">
-                                <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold uppercase tracking-widest mb-2.5 border border-indigo-100/50">Objective</span>
+                              <td className="p-5 align-top text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50">
+                                <span className="inline-block px-3 py-1 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-md text-[10px] font-bold uppercase tracking-widest mb-2.5 border border-indigo-100/50">Objective</span>
                                 <p className="leading-relaxed font-medium">{row.behaviouralObjectives}</p>
                               </td>
-                              <td className="p-5 align-top text-slate-700 italic bg-white/50 leading-relaxed font-medium">
+                              <td className="p-5 align-top text-slate-700 dark:text-slate-300 italic bg-white/50 dark:bg-slate-900/50 leading-relaxed font-medium">
                                 {row.evaluation}
                               </td>
                             </tr>
@@ -1227,15 +1244,15 @@ export default function App() {
 
                   {/* Activities are now in the sidebar */}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 print:break-before-auto border-t border-violet-100 pt-12">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 print:break-before-auto border-t border-violet-100 dark:border-violet-800 pt-12">
                     {lessonPlan.summary && (
                       <div>
-                        <h3 className="font-extrabold text-slate-900 mb-6 uppercase tracking-widest text-sm flex items-center gap-3">
+                        <h3 className="font-extrabold text-slate-900 dark:text-slate-100 mb-6 uppercase tracking-widest text-sm flex items-center gap-3">
                            <span className="w-3 h-6 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-sm shadow-sm"></span>
                            Summary
                         </h3>
-                        <div className="p-8 bg-gradient-to-br from-violet-50 to-white shadow-sm rounded-3xl border border-violet-100">
-                          <p className="text-slate-800 leading-relaxed whitespace-pre-wrap font-semibold">
+                        <div className="p-8 bg-white dark:bg-slate-900 shadow-sm rounded-3xl border border-violet-100 dark:border-violet-800">
+                          <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap font-semibold">
                             {lessonPlan.summary}
                           </p>
                         </div>
@@ -1243,14 +1260,14 @@ export default function App() {
                     )}
                     {lessonPlan.finalEvaluation && lessonPlan.finalEvaluation.length > 0 && (
                       <div>
-                        <h3 className="font-extrabold text-slate-900 mb-6 uppercase tracking-widest text-sm flex items-center gap-3">
+                        <h3 className="font-extrabold text-slate-900 dark:text-slate-100 mb-6 uppercase tracking-widest text-sm flex items-center gap-3">
                            <span className="w-3 h-6 bg-gradient-to-b from-violet-500 to-fuchsia-600 rounded-sm shadow-sm"></span>
                            Evaluation
                         </h3>
-                        <ul className="list-none space-y-4 m-0 p-0 text-slate-800">
+                        <ul className="list-none space-y-4 m-0 p-0 text-slate-800 dark:text-slate-200">
                           {lessonPlan.finalEvaluation.map((task, i) => (
-                            <li key={i} className="flex items-start gap-4 p-5 bg-white border border-fuchsia-100 hover:border-fuchsia-300 transition-colors rounded-3xl shadow-sm">
-                              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center text-sm font-black border border-fuchsia-200 shadow-sm">{i + 1}</span>
+                            <li key={i} className="flex items-start gap-4 p-5 bg-white dark:bg-slate-900 border border-fuchsia-100 dark:border-fuchsia-800 hover:border-fuchsia-300 transition-colors rounded-3xl shadow-sm">
+                              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-700 dark:text-fuchsia-300 flex items-center justify-center text-sm font-black border border-fuchsia-200 dark:border-fuchsia-700 shadow-sm">{i + 1}</span>
                               <span className="leading-relaxed pt-1.5 font-bold">{task}</span>
                             </li>
                           ))}
