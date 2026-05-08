@@ -438,7 +438,18 @@ export default function App() {
                 </button>
                 {authError && (
                   <div className="p-3 bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded-xl border border-rose-200 dark:border-rose-800 text-center">
-                    {authError}
+                    <p className="font-bold mb-1">Sign-In Error</p>
+                    <p>{authError}</p>
+                    {authError.includes('unauthorized-domain') && (
+                      <p className="mt-2 text-rose-600 dark:text-rose-400">
+                        To fix this, go to Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains and add this app's URL.
+                      </p>
+                    )}
+                    {(authError.includes('popup-blocked') || authError.includes('Cross-Origin-Opener-Policy')) && (
+                      <p className="mt-2 text-rose-600 dark:text-rose-400">
+                        Please try opening the app in a new tab or allow popups for this site.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -836,8 +847,15 @@ export default function App() {
                   <input 
                     type="number"
                     min="1"
-                    value={testTotalMarks}
-                    onChange={(e) => setTestTotalMarks(e.target.value)}
+                    value={testTotalMarks === 0 ? '' : testTotalMarks}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setTestTotalMarks('');
+                      } else {
+                        setTestTotalMarks(parseInt(val, 10));
+                      }
+                    }}
                     className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
                   />
                 </div>
