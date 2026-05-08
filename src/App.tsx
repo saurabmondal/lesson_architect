@@ -14,7 +14,7 @@ import csTemplate from './data/cs_template.json';
 import { topicsData } from './data/topics';
 
 export default function App() {
-  const { user, signIn, logOut, loading } = useAuth();
+  const { user, signIn, logOut, loading, authError } = useAuth();
   const [classLevel, setClassLevel] = useState<string>('');
   const [subject, setSubject] = useState<string>('');
   const [lesson, setLesson] = useState<string>('');
@@ -49,7 +49,7 @@ export default function App() {
   const [testSubject, setTestSubject] = useState<string>('');
   const [testSelectedLessons, setTestSelectedLessons] = useState<string[]>([]);
   const [testSelectedTopics, setTestSelectedTopics] = useState<string[]>([]);
-  const [testTotalMarks, setTestTotalMarks] = useState<number>(25);
+  const [testTotalMarks, setTestTotalMarks] = useState<number | string>(25);
   const [isGeneratingTest, setIsGeneratingTest] = useState(false);
   const [testError, setTestError] = useState('');
   const [questionPaper, setQuestionPaper] = useState<QuestionPaper | null>(null);
@@ -168,7 +168,8 @@ export default function App() {
       setTestError("Please select at least one lesson.");
       return;
     }
-    if (testTotalMarks <= 0) {
+    const marks = typeof testTotalMarks === 'string' ? parseInt(testTotalMarks, 10) || 0 : testTotalMarks;
+    if (marks <= 0) {
       setTestError("Please enter a valid total marks greater than 0.");
       return;
     }
@@ -181,7 +182,7 @@ export default function App() {
         subject: testSubject,
         lessons: testSelectedLessons,
         topics: testSelectedTopics,
-        totalMarks: testTotalMarks
+        totalMarks: marks
       });
       setQuestionPaper(paper);
       setTestViewMode('paper');
@@ -435,6 +436,11 @@ export default function App() {
                   <LogIn className="w-4 h-4" />
                   Sign In
                 </button>
+                {authError && (
+                  <div className="p-3 bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded-xl border border-rose-200 dark:border-rose-800 text-center">
+                    {authError}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -831,7 +837,7 @@ export default function App() {
                     type="number"
                     min="1"
                     value={testTotalMarks}
-                    onChange={(e) => setTestTotalMarks(parseInt(e.target.value) || 0)}
+                    onChange={(e) => setTestTotalMarks(e.target.value)}
                     className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:bg-white text-sm font-bold focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all shadow-sm"
                   />
                 </div>
