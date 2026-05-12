@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { type ActivityDetail } from "./firestore";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -35,7 +36,7 @@ export interface LessonPlan {
     evaluation: string;
   }[];
   summary?: string;
-  activities?: string[];
+  activities?: (string | ActivityDetail)[];
   finalEvaluation?: string[];
 }
 
@@ -112,7 +113,20 @@ export async function generateLessonPlan({
             }
           },
           recapitulation: { type: Type.STRING },
-          activities: { type: Type.ARRAY, items: { type: Type.STRING } },
+          activities: { 
+            type: Type.ARRAY, 
+            items: { 
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                duration: { type: Type.STRING },
+                materialsNeeded: { type: Type.ARRAY, items: { type: Type.STRING } },
+                instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                objective: { type: Type.STRING }
+              },
+              required: ["title", "duration", "materialsNeeded", "instructions", "objective"]
+            } 
+          },
           homework: { type: Type.ARRAY, items: { type: Type.STRING } }
         },
         required: [

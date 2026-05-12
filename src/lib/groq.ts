@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { type LessonPlan } from "./gemini";
+import { type ActivityDetail } from "./firestore";
 import { GoogleGenAI } from "@google/genai";
 
 let groqClient: Groq | null = null;
@@ -68,7 +69,15 @@ Your response MUST be valid JSON fitting exactly this structure:
       "evaluation": "string"
     }
   ],
-  "activities": ["string (Suggest 3-5 engaging classroom activities or games related to the topic)"],
+  "activities": [
+    {
+      "title": "Name of the activity",
+      "duration": "Estimated time (e.g., 15 mins)",
+      "materialsNeeded": ["Material 1", "Material 2"],
+      "instructions": ["Step 1", "Step 2", "Step 3"],
+      "objective": "What students will learn/achieve"
+    }
+  ],
   "summary": "string (optional)",
   "finalEvaluation": ["string", "(optional)"]
 }`;
@@ -110,7 +119,7 @@ export async function generateActivitiesWithGroq({
   subject: string;
   lesson: string;
   topic: string;
-}): Promise<string[]> {
+}): Promise<ActivityDetail[]> {
   const model = "llama-3.3-70b-versatile";
 
   const prompt = `You are an expert curriculum developer. Suggest 5 engaging classroom activities or games for Class ${classLevel} ${subject}.
@@ -118,7 +127,15 @@ The overall lesson/chapter is "${lesson}" and the specific topic is "${topic}".
 
 Provide your response as a valid JSON object matching exactly this structure:
 {
-  "activities": ["string details of activity 1", "string details of activity 2", "string details of activity 3", "string details of activity 4", "string details of activity 5"]
+  "activities": [
+    {
+      "title": "Name of the activity",
+      "duration": "Estimated time (e.g., 15 mins)",
+      "materialsNeeded": ["Material 1", "Material 2"],
+      "instructions": ["Step 1", "Step 2", "Step 3"],
+      "objective": "What students will learn/achieve"
+    }
+  ]
 }
 `;
 

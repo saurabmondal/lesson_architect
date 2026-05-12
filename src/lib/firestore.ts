@@ -6,13 +6,21 @@ export interface SavedLessonPlan extends LessonPlan {
   createdAt: any;
 }
 
+export interface ActivityDetail {
+  title: string;
+  duration: string;
+  materialsNeeded: string[];
+  instructions: string[];
+  objective: string;
+}
+
 export interface ActivityLog {
   userId?: string;
   classLevel: string;
   subject: string;
   lesson?: string;
   topic?: string;
-  activities: string[];
+  activities: (string | ActivityDetail)[];
 }
 
 export interface SavedActivityLog extends ActivityLog {

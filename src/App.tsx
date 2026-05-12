@@ -8,7 +8,7 @@ import { useReactToPrint } from 'react-to-print';
 import { type LessonPlan, type QuestionPaper } from './lib/gemini';
 import { generateLessonPlanWithGroq, generateActivitiesWithGroq, generateQuestionPaperWithGroq } from './lib/groq';
 import { useAuth } from './components/AuthProvider';
-import { fetchUserLessonPlans, saveLessonPlan, SavedLessonPlan, fetchUserActivities, saveActivityLog, SavedActivityLog, fetchUserQuestionPapers, saveQuestionPaper, SavedQuestionPaperLog } from './lib/firestore';
+import { fetchUserLessonPlans, saveLessonPlan, SavedLessonPlan, fetchUserActivities, saveActivityLog, SavedActivityLog, fetchUserQuestionPapers, saveQuestionPaper, SavedQuestionPaperLog, ActivityDetail } from './lib/firestore';
 import mathTemplate from './data/math_template.json';
 import csTemplate from './data/cs_template.json';
 import { topicsData } from './data/topics';
@@ -40,7 +40,7 @@ export default function App() {
   const [activitySubject, setActivitySubject] = useState<string>('');
   const [activityLesson, setActivityLesson] = useState<string>('');
   const [activityTopic, setActivityTopic] = useState<string>('');
-  const [standaloneActivities, setStandaloneActivities] = useState<string[]>([]);
+  const [standaloneActivities, setStandaloneActivities] = useState<(string | ActivityDetail)[]>([]);
   const [isGeneratingActivities, setIsGeneratingActivities] = useState(false);
   const [activityError, setActivityError] = useState('');
 
@@ -701,15 +701,60 @@ export default function App() {
                   Results
                 </h4>
                 <div className="space-y-4">
-                  {standaloneActivities.map((activity, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 border border-fuchsia-100 dark:border-fuchsia-800 p-6 rounded-2xl shadow-sm text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
-                        <h5 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">Activity Idea</h5>
-                      </div>
-                      <p>{activity}</p>
-                    </div>
-                  ))}
+                  {standaloneActivities.map((activity, i) => {
+                    if (typeof activity === 'string') {
+                      return (
+                        <div key={i} className="bg-white dark:bg-slate-900 border border-fuchsia-100 dark:border-fuchsia-800 p-6 rounded-2xl shadow-sm text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
+                            <h5 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">Activity Idea</h5>
+                          </div>
+                          <p>{activity}</p>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div key={i} className="bg-white dark:bg-slate-900 border border-fuchsia-100 dark:border-fuchsia-800 p-6 rounded-2xl shadow-sm text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="flex items-center justify-center w-6 h-6 bg-fuchsia-100 dark:bg-fuchsia-900/60 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg text-xs font-bold shadow-sm">{i + 1}</span>
+                            <h5 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">{activity.title}</h5>
+                            <span className="ml-auto text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-1 px-3 rounded-full">{activity.duration}</span>
+                          </div>
+                          
+                          <div className="space-y-4 text-sm mt-3">
+                            {activity.objective && (
+                              <div className="bg-fuchsia-50 dark:bg-fuchsia-900/20 p-3 rounded-xl border border-fuchsia-100 dark:border-fuchsia-800/30">
+                                <span className="font-bold text-fuchsia-800 dark:text-fuchsia-300 block mb-1">Objective:</span>
+                                <span>{activity.objective}</span>
+                              </div>
+                            )}
+                            
+                            {activity.materialsNeeded && activity.materialsNeeded.length > 0 && (
+                              <div>
+                                <span className="font-bold block text-slate-800 dark:text-slate-200 mb-1">Materials Needed:</span>
+                                <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400 ml-2">
+                                  {activity.materialsNeeded.map((mat, idx) => (
+                                    <li key={idx}>{mat}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {activity.instructions && activity.instructions.length > 0 && (
+                              <div>
+                                <span className="font-bold block text-slate-800 dark:text-slate-200 mb-1">Instructions:</span>
+                                <ol className="list-decimal list-inside space-y-1.5 text-slate-600 dark:text-slate-400 ml-2">
+                                  {activity.instructions.map((inst, idx) => (
+                                    <li key={idx} className="pl-1">{inst}</li>
+                                  ))}
+                                </ol>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
               </div>
             )}
